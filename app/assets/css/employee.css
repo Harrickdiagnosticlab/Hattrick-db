@@ -1,0 +1,24 @@
+  /* ---------- Employee: mini clock beside name ---------- */
+  .mini-clock{ display:flex; align-items:center; gap:14px; margin-top:12px; flex-wrap:wrap; }
+  .status-tag{ font-family:var(--font-mono); font-size:11px; text-transform:uppercase; letter-spacing:.1em; color:var(--ink-dim); display:inline-flex; align-items:center; gap:8px; }
+  .status-dot{ width:7px; height:7px; border-radius:50%; background:var(--ink-dim); }
+  .status-tag.active .status-dot{ background:var(--moss); box-shadow:0 0 8px var(--moss); }
+  .status-tag.active{ color:var(--moss); }
+  .timer{ font-family:var(--font-mono); font-weight:600; font-size:22px; letter-spacing:.02em; color:var(--ink); font-variant-numeric: tabular-nums; }
+  .timer.idle{ color:var(--ink-dim); }
+  .punch-btn{
+    padding:10px 18px; font-family:var(--font-mono); font-size:11px; letter-spacing:.06em;
+    text-transform:uppercase; border:none; cursor:pointer; border-radius:6px; font-weight:600; transition:opacity .15s;
+  }
+  .punch-btn.in{ background:var(--moss); color:#fff; }
+  .punch-btn.out{ background:var(--red); color:#fff; }
+  .punch-btn:hover{ opacity:.88; }
+  .punch-btn:disabled{ opacity:.5; cursor:not-allowed; }
+
+  .history-title{ font-family:var(--font-mono); font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-dim); margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid var(--rule); }
+  .row{ display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--rule); font-size:14px; }
+  .row:last-child{ border-bottom:none; }
+  .row-date{ color:var(--ink); }
+  .row-time{ font-family:var(--font-mono); font-size:12px; color:var(--ink-dim); }
+  .row-duration{ font-family:var(--font-mono); font-size:13px; color:var(--amber); font-weight:600; }
+
