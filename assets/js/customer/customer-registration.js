@@ -1,9 +1,23 @@
-  // ---------- Customer registration (shared controller — used by Employee & Admin views) ----------
+// ---------- Customer registration (shared controller — used by Employee & Admin views) ----------
   const custMsg = document.getElementById('custMsg');
   const custTableBody = document.getElementById('custTableBody');
 
   function makeCustomerListController(ids){
     let allRows = [];
+
+    // Sorts by Patient ID, highest first — numeric-aware so "0193" correctly
+    // sorts above "0140" (not just lexicographically), with non-numeric IDs
+    // pushed to the end.
+    function comparePatientIdDesc(a, b){
+      const aId = (a.patientId || '').trim();
+      const bId = (b.patientId || '').trim();
+      const aNum = /^\d+$/.test(aId) ? parseInt(aId, 10) : null;
+      const bNum = /^\d+$/.test(bId) ? parseInt(bId, 10) : null;
+      if (aNum !== null && bNum !== null) return bNum - aNum;
+      if (aNum !== null) return -1;
+      if (bNum !== null) return 1;
+      return bId.localeCompare(aId);
+    }
 
     function matchesSearch(c, term){
       return (c.name || '').toLowerCase().includes(term) ||
@@ -13,7 +27,24 @@
 
     function applyFilter(){
       const term = document.getElementById(ids.searchId).value.toLowerCase().trim();
-      render(term ? allRows.filter(c => matchesSearch(c, term)) : allRows);
+      if (!term){
+        render([...allRows].sort(comparePatientIdDesc));
+        return;
+      }
+      // Search the FULL customers table directly — don't rely on the capped
+      // local cache, or customers outside that window would never be
+      // findable via search either.
+      (async () => {
+        const showArchived = document.getElementById(ids.archiveId).checked;
+        const safeTerm = term.replace(/[,()%]/g, '');
+        let query = sb.from('customers')
+          .select('*')
+          .or(`name.ilike.%${safeTerm}%,phone.ilike.%${safeTerm}%,patientId.ilike.%${safeTerm}%`)
+          .limit(500);
+        query = showArchived ? query : query.eq('active', true);
+        const { data, error } = await query;
+        render(((!error && data) ? data : []).sort(comparePatientIdDesc));
+      })();
     }
 
     function render(rows){
@@ -131,7 +162,7 @@
 
     async function load(){
       const showArchived = document.getElementById(ids.archiveId).checked;
-      let query = sb.from('customers').select('*').order('created_at', { ascending: false }).limit(200);
+      let query = sb.from('customers').select('*').limit(1000);
       query = showArchived ? query : query.eq('active', true);
       const { data, error } = await query;
       allRows = (!error && data) ? data : [];
@@ -162,4 +193,3 @@
   document.getElementById('statAccountsCard').addEventListener('click', () => {
     document.querySelector('#adminWrap .tab-btn[data-tab="admin-accounts"]').click();
   });
-
