@@ -522,30 +522,8 @@
   </div>
 
   <div class="tab-panel" id="tab-inventory">
-    <div class="panel" id="invUpdateForm">
-      <div class="panel-title">Update inventory</div>
-      <div class="msg" id="invMsg"></div>
-      <div class="form-row">
-        <div class="field" style="flex:2;"><label>Item</label>
-          <select class="field-select" id="invItemSelect"></select>
-        </div>
-        <div class="field"><label>Quantity</label><input id="invQtyInput" type="number" placeholder="e.g. 5" /></div>
-      </div>
-      <div class="form-row">
-        <div class="field" style="flex:2;"><label>Note</label><input id="invNoteInput" type="text" placeholder="optional — e.g. condition, location, low stock" /></div>
-      </div>
-      <button class="btn moss" id="invSubmitBtn">Save update</button>
-    </div>
-
-    <div class="panel">
-      <div class="panel-title">Current inventory</div>
-      <div class="table-wrap">
-        <table class="cust-table" id="invStockTable">
-          <thead><tr><th>Item</th><th>Category</th><th>Quantity</th><th>Note</th></tr></thead>
-          <tbody id="invStockTableBody"></tbody>
-        </table>
-      </div>
-    </div>
+    <div class="msg" id="invMsg"></div>
+    <div id="invCategoryCards"></div>
   </div>
 
   <div class="tab-panel" id="tab-timelog">
