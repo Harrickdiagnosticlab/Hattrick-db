@@ -43,7 +43,11 @@
       return;
     }
 
-    const { error } = await sb.from('employees').insert({ name, username, password });
+    const { error } = await sb.rpc('admin_create_employee', {
+      p_name: name,
+      p_username: username,
+      p_password: password
+    });
     if (error){
       showMsg(empMsg, error.message.includes('duplicate') ? 'That username is already taken.' : error.message, 'err');
       return;
