@@ -19,12 +19,11 @@
     clearMsg(authMsg);
     authSubmit.disabled = true;
 
-    const { data: adminMatch } = await sb
-      .from('admin_users')
-      .select('*')
-      .eq('username', username)
-      .eq('password', password)
-      .maybeSingle();
+    const { data: adminRows } = await sb.rpc('verify_admin_login', {
+      p_username: username,
+      p_password: password
+    });
+    const adminMatch = adminRows && adminRows.length ? adminRows[0] : null;
 
     if (adminMatch){
       usernameInput.value = ''; passwordInput.value = '';
@@ -41,13 +40,11 @@
       return;
     }
 
-    const { data, error } = await sb
-      .from('employees')
-      .select('*')
-      .eq('username', username)
-      .eq('password', password)
-      .eq('active', true)
-      .maybeSingle();
+    const { data: employeeRows, error } = await sb.rpc('verify_employee_login', {
+      p_username: username,
+      p_password: password
+    });
+    const data = employeeRows && employeeRows.length ? employeeRows[0] : null;
 
     authSubmit.disabled = false;
 
