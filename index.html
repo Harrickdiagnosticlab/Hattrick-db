@@ -1,715 +1,792 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Hattrick Diagnostic Lab - Premium Smart Pricing Dashboard</title>
-<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<style>
-        .loader {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #ea580c;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .cart-animate {
-            animation: cartBounce 0.4s ease-out;
-        }
-        @keyframes cartBounce {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.15); }
-            100% { transform: scale(1); }
-        }
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-        @keyframes revealUp {
-            0% { opacity: 0; transform: translateY(20px); }
-            100% { opacity: 1; transform: translateY(0); }
-        }
-        .animate-reveal-hero {
-            animation: revealUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-
-        /* CUSTOM TRANSTIONS FOR MODE CHANGE */
-        .focus-transition {
-            transition: filter 0.5s ease, opacity 0.5s ease, border-color 0.4s ease, transform 0.4s ease;
-        }
-        /* WHOLE PAGE BLACK & WHITE STATE */
-        .grayscale-focus-mode .grayscale-target {
-            filter: grayscale(100%);
-            opacity: 0.6;
-        }
-        /* KEEP ACTIVE CONTAINER IMMUNE TO BLACK & WHITE */
-        .grayscale-focus-mode .keep-colored {
-            filter: grayscale(0%) !important;
-            opacity: 1 !important;
-        }
-    </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Shift Log</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/core.css">
+<link rel="stylesheet" href="assets/css/auth.css">
+<link rel="stylesheet" href="assets/css/ui.css">
+<link rel="stylesheet" href="assets/css/dashboard.css">
+<link rel="stylesheet" href="assets/css/customer.css">
+<link rel="stylesheet" href="assets/css/employee.css">
+<link rel="stylesheet" href="assets/css/invoice.css">
+<link rel="stylesheet" href="assets/css/accounts.css">
 </head>
-<body class="bg-orange-50/30 text-slate-800 font-sans antialiased relative min-h-screen pb-28 md:pb-24 focus-transition" id="mainBody">
-<section class="relative bg-gradient-to-r from-orange-500 to-amber-500 text-white py-12 px-4 text-center shadow-sm overflow-hidden grayscale-target focus-transition"><div class="absolute top-3 right-4 z-50"><a class="text-[11px] bg-white/20 hover:bg-white/30 border border-white/40 text-white px-3 py-1 rounded-md font-semibold backdrop-blur-sm transition" href="app/" target="_blank">Login</a></div>
-<div class="max-w-4xl mx-auto animate-reveal-hero">
-<span class="bg-white/20 text-white font-bold tracking-widest text-xs uppercase px-3 py-1 rounded-full border border-white/30">Hattrick Assurance</span>
-<h1 class="text-4xl md:text-6xl font-black tracking-tight mt-3 mb-2">100% TRANSPARENT PRICING</h1>
-<p class="text-orange-50 text-base md:text-lg max-w-2xl mx-auto font-medium">
-                Pick your exploration matrix card below, then select your profile package option to check rates instantly.
-            </p>
+<body>
+
+<!-- LOGIN -->
+<div class="center" id="authScreen">
+  <div class="auth-wrap">
+    <div class="eyebrow">Shift Log</div>
+    <h1 class="title">Sign in</h1>
+    <p class="sub">Admin or employee — same login screen.</p>
+    <div class="msg" id="authMsg"></div>
+    <div class="field">
+      <label for="username">Username</label>
+      <input id="username" type="text" autocomplete="username" placeholder="username" />
+    </div>
+    <div class="field">
+      <label for="password">Password</label>
+      <input id="password" type="password" autocomplete="current-password" placeholder="••••••••" />
+    </div>
+    <button class="btn full" id="authSubmit">Sign in</button>
+
+    <div class="view-toggle">
+      <button type="button" class="view-toggle-btn" id="viewModeMobileBtn">📱 Mobile View</button>
+      <button type="button" class="view-toggle-btn" id="viewModePcBtn">🖥️ PC View</button>
+    </div>
+  </div>
 </div>
-</section>
-<header class="bg-white border-b border-orange-100 shadow-sm sticky top-0 z-40 py-4 grayscale-target focus-transition">
-<div class="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-4">
-<div>
-<h2 class="text-xl font-black text-orange-600 tracking-wide">HATTRICK DIAGNOSTIC LAB</h2>
-<p class="text-slate-500 text-xs mt-0.5">Accurate Diagnosis • Honest Pricing</p>
+
+<!-- ADMIN DASHBOARD -->
+<div class="dash-wrap" id="adminWrap">
+  <div class="dash-header">
+    <div>
+      <div class="greeting-eyebrow">Signed in as</div>
+      <div class="greeting">Admin</div>
+    </div>
+    <button class="btn ghost" id="adminLogout">Log out</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="admin-dashboard">Dashboard</button>
+    <button class="tab-btn" data-tab="admin-employees">Employee Management</button>
+    <button class="tab-btn" data-tab="admin-services">Services</button>
+    <button class="tab-btn" data-tab="admin-accounts">Accounts</button>
+    <button class="tab-btn" data-tab="admin-customers">Customers</button>
+  </div>
+
+  <!-- Dashboard -->
+  <div class="tab-panel active" id="tab-admin-dashboard">
+    <div class="stats-grid">
+      <div class="stat-card" id="statEmployeesCard" style="cursor:pointer;"><div class="stat-value" id="statEmployees">—</div><div class="stat-label">Employees ›</div></div>
+      <div class="stat-card" id="statCustomersCard" style="cursor:pointer;"><div class="stat-value" id="statCustomers">—</div><div class="stat-label">Customers ›</div></div>
+      <div class="stat-card" id="statServicesCard" style="cursor:pointer;"><div class="stat-value" id="statServices">—</div><div class="stat-label">Services ›</div></div>
+      <div class="stat-card"><div class="stat-value" id="statActive">—</div><div class="stat-label">On Shift Now</div></div>
+      <div class="stat-card" id="statAccountsCard" style="cursor:pointer; text-align:left; padding:20px 22px;">
+        <div class="stat-label" style="margin-bottom:12px;">Accounts ›</div>
+        <div style="display:flex; justify-content:space-between; font-size:13px; padding:4px 0;"><span class="cust-meta">Cash Balance</span><strong id="dashCashBalance">—</strong></div>
+        <div style="display:flex; justify-content:space-between; font-size:13px; padding:4px 0;"><span class="cust-meta">Digital Balance</span><strong id="dashDigitalBalance">—</strong></div>
+        <div style="display:flex; justify-content:space-between; font-size:13px; padding:4px 0;"><span class="cust-meta">Today's Profit</span><strong id="dashTodayProfit">—</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Employee Management -->
+  <div class="tab-panel" id="tab-admin-employees">
+    <div class="panel">
+      <div class="panel-title">Create employee</div>
+      <div class="msg" id="empMsg"></div>
+      <div class="form-row">
+        <div class="field"><label>Name</label><input id="empName" type="text" placeholder="Employee name" /></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Username</label><input id="empUsername" type="text" placeholder="e.g. rahul" /></div>
+        <div class="field"><label>Password</label><input id="empPassword" type="text" placeholder="Set a password" /></div>
+      </div>
+      <button class="btn moss" id="createEmpBtn">Add employee</button>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header-row">
+        <div class="panel-title" style="margin-bottom:0;">Employees</div>
+        <div class="inv-checkbox-row" style="margin-bottom:0;">
+          <input type="checkbox" id="empShowArchived" />
+          <label for="empShowArchived">Show archived</label>
+        </div>
+      </div>
+      <div id="empList"></div>
+    </div>
+  </div>
+
+  <!-- Services -->
+  <div class="tab-panel" id="tab-admin-services">
+    <div class="subtabs">
+      <button class="subtab-btn active" data-subtab="svc-tests">Tests</button>
+      <button class="subtab-btn" data-subtab="svc-packages">Packages</button>
+    </div>
+
+    <div class="subtab-panel active" id="subtab-svc-tests">
+    <div class="panel">
+      <div class="panel-header-row">
+        <div class="panel-title" style="margin-bottom:0;">Services / Tests</div>
+        <div>
+          <input type="file" id="svcImportFile" class="import-input" accept="application/json,.json" />
+          <button class="btn ghost" id="svcImportBtn">Import Data</button>
+        </div>
+      </div>
+      <div class="msg" id="svcMsg"></div>
+      <div class="form-row">
+        <div class="field"><label>Test name</label><input id="svcName" type="text" placeholder="e.g. CBC" /></div>
+        <div class="field" style="max-width:160px;"><label>Price (₹)</label><input id="svcPrice" type="number" placeholder="e.g. 260" /></div>
+      </div>
+      <div class="field">
+        <label>Categories (select one or more — a test can belong to several)</label>
+        <div class="category-picker" id="svcCategoryPicker"></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><input id="svcNewCategoryInput" type="text" placeholder="Add a new category..." /></div>
+        <div class="field" style="flex:0;"><button class="btn ghost" id="svcAddCategoryBtn" type="button" style="white-space:nowrap;">+ Add Category</button></div>
+      </div>
+      <button class="btn moss" id="createSvcBtn">Add service</button>
+
+      <div class="inv-checkbox-row" style="margin-top:20px; margin-bottom:0;">
+        <input type="checkbox" id="svcShowArchived" />
+        <label for="svcShowArchived">Show archived</label>
+      </div>
+      <div class="field" style="margin-top:16px;">
+        <label>Filter by category</label>
+        <select class="field-select" id="svcCategoryFilter"><option value="">All Categories</option></select>
+      </div>
+      <div class="field" style="margin-top:16px;"><input id="svcSearchFilter" type="text" placeholder="Search by test name..." /></div>
+
+      <div class="table-wrap" style="margin-top:16px;">
+        <table class="cust-table" id="svcTable">
+          <thead><tr><th>Name</th><th>Categories</th><th>Price (₹)</th><th>Website</th><th></th></tr></thead>
+          <tbody id="svcTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+    </div>
+
+    <div class="subtab-panel" id="subtab-svc-packages">
+      <div class="panel">
+        <div class="panel-title">Create package</div>
+        <div class="msg" id="pkgMsg"></div>
+        <div class="field"><label>Package name</label><input id="pkgName" type="text" placeholder="e.g. Full Body Checkup" /></div>
+        <div class="field"><label>Search tests</label><input id="pkgTestSearch" type="text" placeholder="Start typing test name..." /></div>
+        <div class="inv-service-list" id="pkgTestSelector" style="max-height:280px;"><p class="empty">Loading tests…</p></div>
+
+        <div class="inv-summary" style="margin-top:16px;">
+          <div class="inv-summary-row total"><span>Total MRP (sum of selected tests):</span><strong id="pkgMrpDisplay">₹0.00</strong></div>
+        </div>
+        <div class="field" style="max-width:220px; margin-top:12px;"><label>Published Package Rate (₹)</label><input id="pkgRate" type="number" placeholder="Discounted price" /></div>
+        <button class="btn moss" id="createPkgBtn" style="margin-top:16px;">Publish package</button>
+      </div>
+
+      <div class="panel">
+        <div class="inv-checkbox-row" style="margin-bottom:16px;">
+          <input type="checkbox" id="pkgShowArchived" />
+          <label for="pkgShowArchived">Show archived</label>
+        </div>
+        <div class="table-wrap">
+          <table class="cust-table" id="pkgTable">
+            <thead><tr><th>Package</th><th>Tests</th><th>MRP</th><th>Rate</th><th>Savings</th><th></th></tr></thead>
+            <tbody id="pkgTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Accounts -->
+  <div class="tab-panel" id="tab-admin-accounts">
+    <div class="subtabs">
+      <button class="subtab-btn active" data-subtab="admin-overview">Overview</button>
+      <button class="subtab-btn" data-subtab="admin-ledger">Ledger</button>
+    </div>
+
+    <div class="subtab-panel active" id="subtab-admin-overview">
+    <div class="panel">
+      <div class="panel-header-row">
+        <div class="panel-title" style="margin-bottom:0;">Filter</div>
+        <div class="mode-pills">
+          <button type="button" class="mode-pill selected" id="acctFilterDailyBtn" data-range="daily">Daily</button>
+          <button type="button" class="mode-pill" id="acctFilterMonthlyBtn" data-range="monthly">Monthly</button>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field" id="acctDailyFieldWrap" style="max-width:220px;">
+          <label>Date</label>
+          <div class="date-display-wrap">
+            <input id="acctFilterDateDisplay" type="text" readonly placeholder="DD/MM/YYYY" />
+            <input id="acctFilterDate" type="date" />
+          </div>
+        </div>
+        <div class="field" id="acctMonthlyFieldWrap" style="max-width:220px; display:none;">
+          <label>Month</label>
+          <input id="acctFilterMonth" type="month" />
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Collections — <span id="acctPeriodLabel">today</span></div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-value" id="acctCashToday">—</div><div class="stat-label">Cash</div></div>
+        <div class="stat-card"><div class="stat-value" id="acctUpiToday">—</div><div class="stat-label">UPI</div></div>
+        <div class="stat-card"><div class="stat-value" id="acctCardToday">—</div><div class="stat-label">Card</div></div>
+        <div class="stat-card"><div class="stat-value" id="acctCreditToday">—</div><div class="stat-label">Credit (new)</div></div>
+        <div class="stat-card"><div class="stat-value" id="acctTotalToday">—</div><div class="stat-label">Total Revenue</div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Profit &amp; loss — <span id="acctPeriodLabel2">today</span></div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-value" id="acctRevenueStat">—</div><div class="stat-label">Revenue</div></div>
+        <div class="stat-card"><div class="stat-value" id="acctExpenseStat">—</div><div class="stat-label">Expenses</div></div>
+        <div class="stat-card"><div class="stat-value" id="acctProfitStat">—</div><div class="stat-label">Net Profit / Loss</div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Current balances (all-time, from ledger)</div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-value" id="acctCashBalanceOverview">—</div><div class="stat-label">Cash Balance</div></div>
+        <div class="stat-card"><div class="stat-value" id="acctDigitalBalanceOverview">—</div><div class="stat-label">Digital Balance</div></div>
+      </div>
+    </div>
+    </div>
+
+    <div class="subtab-panel" id="subtab-admin-ledger">
+      <div class="panel">
+        <div class="panel-header-row">
+          <div class="panel-title" style="margin-bottom:0;">Full ledger (invoices + expenses + manual entries)</div>
+          <div>
+            <input type="file" id="ledgerImportFile" class="import-input" accept="application/json,.json" />
+            <button class="btn ghost" id="ledgerImportBtn">Import JSON backup</button>
+            <button class="btn ghost" id="ledgerExportCsvBtn">Export CSV</button>
+          </div>
+        </div>
+        <div class="msg" id="ledgerImportMsg"></div>
+
+        <div class="stats-grid" style="margin-bottom:20px;">
+          <div class="stat-card"><div class="stat-value" id="ledgerIncomeStat">—</div><div class="stat-label">Total Customer Income</div></div>
+          <div class="stat-card"><div class="stat-value" id="ledgerExpenseStat">—</div><div class="stat-label">Total Expenses (Debit)</div></div>
+          <div class="stat-card"><div class="stat-value" id="ledgerCashClosingStat">—</div><div class="stat-label">Cash Closing Balance</div></div>
+          <div class="stat-card"><div class="stat-value" id="ledgerBankClosingStat">—</div><div class="stat-label">Bank Closing Balance</div></div>
+        </div>
+
+        <div class="form-row">
+          <div class="field"><input id="ledgerSearch" type="text" placeholder="Search invoice / customer / B2B / reason..." /></div>
+          <div class="field" style="max-width:160px;"><input id="ledgerPatientIdFilter" type="text" placeholder="Patient ID" /></div>
+          <div class="field" style="max-width:170px;"><select class="field-select" id="ledgerMonthFilter"><option value="">All Months</option></select></div>
+          <div class="field" style="max-width:150px;"><select class="field-select" id="ledgerModeFilter">
+            <option value="">All Modes</option><option>Cash</option><option>UPI</option><option>Card</option><option>Credit</option><option>Bank</option>
+          </select></div>
+        </div>
+        <div class="form-row">
+          <div class="field" style="max-width:170px;"><label>Start date</label>
+            <div class="date-display-wrap">
+              <input id="ledgerStartDateDisplay" type="text" readonly placeholder="DD/MM/YYYY" />
+              <input id="ledgerStartDate" type="date" />
+            </div>
+          </div>
+          <div class="field" style="max-width:170px;"><label>End date</label>
+            <div class="date-display-wrap">
+              <input id="ledgerEndDateDisplay" type="text" readonly placeholder="DD/MM/YYYY" />
+              <input id="ledgerEndDate" type="date" />
+            </div>
+          </div>
+          <div class="field" style="display:flex; align-items:flex-end;">
+            <button class="btn moss" id="ledgerAddAmountBtn" type="button">+ Add Amount</button>
+            <button class="btn red" id="ledgerAddExpenseBtn" type="button">+ Add Expense</button>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field" style="max-width:180px;"><label>Opening Cash Balance (₹)</label><input id="ledgerOpeningCash" type="number" step="0.01" /></div>
+          <div class="field" style="max-width:180px;"><label>Opening Bank Balance (₹)</label><input id="ledgerOpeningBank" type="number" step="0.01" /></div>
+          <div class="field" style="display:flex; align-items:flex-end;">
+            <button class="btn ghost" id="ledgerSaveOpeningBtn" type="button">Save Opening Balances</button>
+          </div>
+        </div>
+        <div class="msg" id="ledgerOpeningMsg"></div>
+
+        <div class="table-wrap" style="margin-top:16px;">
+          <table class="cust-table" id="ledgerAllTable">
+            <thead><tr>
+              <th>Type</th><th>Date</th><th>Invoice</th><th>Customer / Reason</th><th>Mode</th>
+              <th>Received</th><th>Pending</th><th>Holding</th><th></th><th></th>
+            </tr></thead>
+            <tbody id="ledgerAllBody"></tbody>
+            <tfoot id="ledgerFooter"></tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Customers -->
+  <div class="tab-panel" id="tab-admin-customers">
+    <div class="panel">
+      <div class="panel-header-row">
+        <div class="panel-title" style="margin-bottom:0;">All customers</div>
+        <div class="inv-checkbox-row" style="margin-bottom:0;">
+          <input type="checkbox" id="adminCustShowArchived" />
+          <label for="adminCustShowArchived">Show archived</label>
+        </div>
+      </div>
+      <div class="field"><input id="adminCustSearchFilter" type="text" placeholder="Search by name, phone, or Patient ID..." /></div>
+      <div class="table-wrap">
+        <table class="cust-table" id="adminCustTable">
+          <thead><tr><th>Name</th><th>Age / Sex</th><th>Phone</th><th>Patient ID</th><th>Branch</th><th>Added</th><th></th></tr></thead>
+          <tbody id="adminCustTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 </div>
-<div class="w-full sm:w-80">
-<input class="w-full px-4 py-2 rounded-lg text-slate-900 border border-orange-200 focus:outline-none focus:ring-2 focus:ring-orange-500 shadow-sm bg-orange-50/20 text-sm" id="searchInput" oninput="filterTests()" placeholder="Search test or package name..." type="text"/>
+
+<!-- EMPLOYEE DASHBOARD -->
+<div class="dash-wrap" id="empWrap">
+  <div class="dash-header">
+    <div>
+      <div class="greeting-eyebrow">Signed in as</div>
+      <div class="greeting" id="empGreeting"></div>
+      <div class="mini-clock">
+        <div class="status-tag" id="statusTag"><span class="status-dot"></span><span id="statusText">Off shift</span></div>
+        <div class="timer idle" id="timer">00:00:00</div>
+        <button class="punch-btn in" id="punchBtn">Check In</button>
+      </div>
+    </div>
+    <button class="btn ghost" id="empLogout">Log out</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="customer">Customer Registration</button>
+    <button class="tab-btn" data-tab="invoice">Invoice Generator</button>
+    <button class="tab-btn" data-tab="inventory">Inventory Update</button>
+    <button class="tab-btn" data-tab="timelog">Time Log History</button>
+    <button class="tab-btn" data-tab="accounts">Accounts</button>
+  </div>
+
+  <div class="tab-panel active" id="tab-customer">
+    <div class="panel">
+      <div class="panel-header-row">
+        <div class="panel-title" style="margin-bottom:0;">Register new customer</div>
+        <div>
+          <input type="file" id="importFile" class="import-input" accept="application/json,.json" />
+          <button class="btn ghost" id="importBtn">Import Data</button>
+        </div>
+      </div>
+      <div class="msg" id="custMsg"></div>
+      <div class="form-row">
+        <div class="field"><label>Title</label>
+          <select class="field-select" id="custTitle">
+            <option>Mr.</option><option>Mrs.</option><option>Ms.</option><option>Miss.</option>
+            <option>Master.</option><option>Baby.</option><option>Child.</option><option>Dr.</option>
+          </select>
+        </div>
+        <div class="field"><label>Name</label><input id="custName" type="text" placeholder="Full name" /></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Age</label><input id="custAge" type="text" placeholder="e.g. 34" /></div>
+        <div class="field"><label>Sex</label>
+          <select class="field-select" id="custSex">
+            <option>Male</option><option>Female</option><option>Other</option>
+          </select>
+        </div>
+        <div class="field"><label>Patient ID</label><input id="custPatientId" type="text" placeholder="optional" /></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Phone</label><input id="custPhone" type="text" placeholder="Phone number" /></div>
+        <div class="field"><label>Email</label><input id="custEmail" type="text" placeholder="optional" /></div>
+      </div>
+      <div class="form-row">
+        <div class="field" style="flex:2;"><label>Address</label><input id="custAddress" type="text" placeholder="optional" /></div>
+        <div class="field"><label>Branch / Spot</label><input id="custBranch" type="text" placeholder="e.g. Egmore" /></div>
+      </div>
+      <button class="btn moss" id="createCustBtn">Add customer</button>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header-row">
+        <div class="panel-title" style="margin-bottom:0;">All customers</div>
+        <div class="inv-checkbox-row" style="margin-bottom:0;">
+          <input type="checkbox" id="custShowArchived" />
+          <label for="custShowArchived">Show archived</label>
+        </div>
+      </div>
+      <div class="field"><input id="custSearchFilter" type="text" placeholder="Search by name, phone, or Patient ID..." /></div>
+      <div class="table-wrap">
+        <table class="cust-table" id="custTable">
+          <thead><tr><th>Name</th><th>Age / Sex</th><th>Phone</th><th>Patient ID</th><th>Branch</th><th>Added</th><th></th></tr></thead>
+          <tbody id="custTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="tab-invoice">
+    <div style="display:flex; align-items:center; gap:14px; margin-bottom:8px;">
+      <img id="invLogoDisplay" alt="Hattrick Diagnostic Lab" style="width:56px; height:56px; object-fit:contain; border-radius:8px;" />
+      <div>
+        <div style="font-family:var(--font-display); font-weight:600; font-size:16px; color:var(--ink);">Hattrick Diagnostic Lab</div>
+        <div class="cust-meta" style="font-size:11px;">Logo ready — will appear on every printed invoice</div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Patient details</div>
+      <div class="form-row">
+        <div class="field" style="max-width:200px;">
+          <label>Invoice date</label>
+          <div class="date-display-wrap">
+            <input id="invInvoiceDateDisplay" type="text" readonly placeholder="DD/MM/YYYY" />
+            <input id="invInvoiceDate" type="date" />
+          </div>
+        </div>
+        <div class="field inv-search-wrap">
+          <label>Search patient</label>
+          <input id="invCustomerSearch" type="text" placeholder="Search by name, ID, or phone..." autocomplete="off" />
+          <div class="inv-results-list" id="invCustomerResultsList" style="display:none;"></div>
+        </div>
+      </div>
+      <div class="inv-selected-customer" id="invSelectedCustomerDisplay">Select or type a patient name above.</div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header-row">
+        <div class="panel-title" style="margin-bottom:0;">Select tests / packages</div>
+        <div class="mode-pills" id="invModePills">
+          <button type="button" class="mode-pill selected" data-mode="tests">Tests <span id="invTestsSelectedBadge"></span></button>
+          <button type="button" class="mode-pill" data-mode="packages">Packages <span id="invPackagesSelectedBadge"></span></button>
+        </div>
+      </div>
+
+      <div id="invTestsModeWrap">
+        <div class="field">
+          <label>Search test</label>
+          <input id="invServiceSearch" type="text" placeholder="Start typing test name..." />
+        </div>
+        <div class="inv-service-list" id="invServiceSelectorContainer"><p class="empty">Loading services…</p></div>
+      </div>
+
+      <div id="invPackagesModeWrap" style="display:none;">
+        <div class="field">
+          <label>Search package</label>
+          <input id="invPackageSearch" type="text" placeholder="Start typing package name..." />
+        </div>
+        <div class="inv-service-list" id="invPackageSelectorContainer"><p class="empty">Loading packages…</p></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Charges &amp; discount</div>
+      <div class="form-row">
+        <div class="field"><label>Discount (₹)</label><input id="invDiscountInput" type="number" value="0" min="0" /></div>
+        <div class="field"><label>Other charges (₹)</label><input id="invOtherChargesInput" type="number" value="0" /></div>
+      </div>
+      <div class="field"><label>Charges note (optional)</label><input id="invOtherChargesNote" type="text" placeholder="e.g. Home Collection Fee" /></div>
+      <div class="inv-summary">
+        <div class="inv-summary-row"><span>Subtotal:</span><strong id="invSubTotalDisplay">₹0.00</strong></div>
+        <div class="inv-summary-row" style="color:var(--red);"><span>Discount:</span><strong id="invDiscountDisplay">- ₹0.00</strong></div>
+        <div class="inv-summary-row"><span>Other charges:</span><strong id="invChargesDisplay">+ ₹0.00</strong></div>
+        <div class="inv-summary-row total"><span>GRAND TOTAL:</span><strong id="invGrandTotalDisplay">₹0.00</strong></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Customer payment</div>
+      <div class="field">
+        <label>Customer payment mode</label>
+        <select class="field-select" id="invPaymentMode">
+          <option value="Cash">Cash</option>
+          <option value="UPI">UPI</option>
+          <option value="Card">Card</option>
+          <option value="Credit">Credit (Outstanding)</option>
+        </select>
+      </div>
+      <div class="inv-checkbox-row">
+        <input type="checkbox" id="invFullPaymentCheckbox" checked />
+        <label for="invFullPaymentCheckbox">Full payment received</label>
+      </div>
+      <div id="invAdvancePaymentSection" style="display:none;">
+        <div class="field"><label>Advance / partial amount paid (₹)</label><input id="invAdvancePaidAmountInput" type="number" value="0" min="0" /></div>
+      </div>
+      <div class="inv-summary-row total" style="margin-top:6px;"><span>Balance due:</span><strong id="invBalanceDueDisplay">₹0.00</strong></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">B2B / ledger info</div>
+      <div class="field">
+        <label>Business / hospital name (B2B)</label>
+        <select class="field-select" id="invB2bNameSelect">
+          <option value="">Quotation only</option>
+          <option value="SRM">SRM</option>
+          <option value="Tyrocare">Tyrocare</option>
+        </select>
+      </div>
+      <div class="field"><label>Paid amount to B2B (₹)</label><input id="invPaidAmountToB2B" type="number" value="0" min="0" placeholder="Enter amount paid to B2B" /></div>
+      <button class="btn ghost full" id="invSaveLedgerBtn">Save to Transaction Ledger</button>
+    </div>
+
+    <div class="panel">
+      <button class="btn full" id="invPrintBtn" style="margin-bottom:12px;">Generate &amp; Print Invoice</button>
+      <button class="btn ghost full" id="invSaveHtmlBtn">Save Invoice as HTML</button>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="tab-inventory">
+    <div class="panel" id="invUpdateForm">
+      <div class="panel-title">Update inventory</div>
+      <div class="msg" id="invMsg"></div>
+      <div class="form-row">
+        <div class="field" style="flex:2;"><label>Item</label>
+          <select class="field-select" id="invItemSelect"></select>
+        </div>
+        <div class="field"><label>Quantity</label><input id="invQtyInput" type="number" placeholder="e.g. 5" /></div>
+      </div>
+      <div class="form-row">
+        <div class="field" style="flex:2;"><label>Note</label><input id="invNoteInput" type="text" placeholder="optional — e.g. condition, location, low stock" /></div>
+      </div>
+      <button class="btn moss" id="invSubmitBtn">Save update</button>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Current inventory</div>
+      <div class="table-wrap">
+        <table class="cust-table" id="invStockTable">
+          <thead><tr><th>Item</th><th>Category</th><th>Quantity</th><th>Note</th></tr></thead>
+          <tbody id="invStockTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="tab-timelog">
+    <div class="panel">
+      <div class="history-title">Recent sessions (your check-ins only)</div>
+      <div id="historyList"></div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="tab-accounts">
+    <div class="subtabs">
+      <button class="subtab-btn active" data-subtab="transactions">Transactions History</button>
+      <button class="subtab-btn" data-subtab="pending">Pending Payments</button>
+      <button class="subtab-btn" data-subtab="closing">Daily Closing</button>
+      <button class="subtab-btn" data-subtab="expenses">Expenses</button>
+    </div>
+
+    <!-- TRANSACTIONS HISTORY -->
+    <div class="subtab-panel active" id="subtab-transactions">
+      <div class="panel">
+        <div class="panel-header-row">
+          <div class="panel-title" style="margin-bottom:0;">All transactions</div>
+        </div>
+        <div class="field"><input id="acctTxnSearch" type="text" placeholder="Search by invoice number or customer name..." /></div>
+        <div class="table-wrap" style="margin-top:16px;">
+          <table class="cust-table" id="acctTxnTable">
+            <thead><tr><th>Invoice</th><th>Date</th><th>Customer</th><th>Mode</th><th>Total</th><th>Paid</th><th>Due</th></tr></thead>
+            <tbody id="acctTxnBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PENDING PAYMENTS -->
+    <div class="subtab-panel" id="subtab-pending">
+      <div class="panel">
+        <div class="panel-title">Pending payments (credit / outstanding)</div>
+        <div class="msg" id="acctPendingMsg"></div>
+        <div class="table-wrap">
+          <table class="cust-table" id="acctPendingTable">
+            <thead><tr><th>Invoice</th><th>Customer</th><th>Balance Due</th><th></th></tr></thead>
+            <tbody id="acctPendingBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Recently cleared payments</div>
+        <div class="table-wrap">
+          <table class="cust-table" id="acctClearedTable">
+            <thead><tr><th>Invoice</th><th>Customer</th><th>Amount</th><th>Mode</th><th>Date</th></tr></thead>
+            <tbody id="acctClearedBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- DAILY CLOSING -->
+    <div class="subtab-panel" id="subtab-closing">
+      <div class="panel">
+        <div class="panel-title">Today's collections (Cash &amp; UPI only)</div>
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-value" id="acctCashBalance">—</div><div class="stat-label">Today's Cash Balance</div></div>
+          <div class="stat-card"><div class="stat-value" id="acctDigitalBalance">—</div><div class="stat-label">Today's UPI Balance</div></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Closing check — does today's actual cash/UPI match?</div>
+        <div class="msg" id="acctMsg"></div>
+
+        <div class="form-row">
+          <div class="field"><label>Actual cash counted (₹)</label><input id="acctActualCash" type="number" placeholder="Count the cash drawer" /></div>
+          <div class="field"><label>Actual UPI received (₹)</label><input id="acctActualDigital" type="number" placeholder="Check UPI app" /></div>
+        </div>
+
+        <div class="inv-summary-row total" id="acctCashDiffRow"><span>Cash — matches?</span><strong id="acctCashDiff">Enter amount above</strong></div>
+        <div class="inv-summary-row total" id="acctDigitalDiffRow"><span>UPI — matches?</span><strong id="acctDigitalDiff">Enter amount above</strong></div>
+
+        <button class="btn moss full" id="acctSubmitBtn" style="margin-top:20px;">Close &amp; Save Today's Report</button>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Recent closing reports</div>
+        <div class="table-wrap">
+          <table class="cust-table" id="acctHistoryTable">
+            <thead><tr><th>Date</th><th>Employee</th><th>Cash</th><th>UPI</th></tr></thead>
+            <tbody id="acctHistoryBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXPENSES -->
+    <div class="subtab-panel" id="subtab-expenses">
+      <div class="panel">
+        <div class="panel-title">Add expense</div>
+        <div class="msg" id="expMsg"></div>
+        <div class="form-row">
+          <div class="field" style="max-width:180px;"><label>Date</label>
+            <div class="date-display-wrap">
+              <input id="expDateDisplay" type="text" readonly placeholder="DD/MM/YYYY" />
+              <input id="expDate" type="date" />
+            </div>
+          </div>
+          <div class="field" style="max-width:200px;"><label>Category</label>
+            <select class="field-select" id="expCategory">
+              <option>Rent</option><option>Salary</option><option>Supplies</option>
+              <option>Electricity</option><option>Maintenance</option><option>Other</option>
+            </select>
+          </div>
+          <div class="field"><label>Description</label><input id="expDescription" type="text" placeholder="e.g. Reagent stock" /></div>
+          <div class="field" style="max-width:150px;"><label>Amount (₹)</label><input id="expAmount" type="number" placeholder="0.00" /></div>
+          <div class="field" style="max-width:150px;"><label>Paid from</label>
+            <select class="field-select" id="expSource">
+              <option>Cash</option><option>UPI</option><option>Card</option><option>Bank</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn moss" id="expAddBtn">Add expense</button>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">All expenses</div>
+        <div class="table-wrap">
+          <table class="cust-table" id="expTable">
+            <thead><tr><th>Date</th><th>Category</th><th>Description</th><th>Amount</th><th>Paid from</th><th></th></tr></thead>
+            <tbody id="expTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
+
+<div id="invInvoicePrintArea"></div>
+
+<!-- Add Amount modal -->
+<div class="modal-overlay" id="addAmountModal">
+  <div class="modal-card">
+    <div class="modal-title">Add Amount</div>
+    <div class="msg" id="addAmountMsg"></div>
+    <div class="field"><label>Amount received (₹)</label><input id="addAmountValue" type="number" placeholder="0.00" /></div>
+    <div class="field"><label>Reason</label><input id="addAmountReason" type="text" value="Manual Cash Input" /></div>
+    <div class="field"><label>Payment mode</label>
+      <div class="mode-pills" id="addAmountModePills">
+        <button type="button" class="mode-pill selected" data-mode="Cash">Cash</button>
+        <button type="button" class="mode-pill" data-mode="UPI">UPI</button>
+        <button type="button" class="mode-pill" data-mode="Card">Card</button>
+        <button type="button" class="mode-pill" data-mode="Bank">Bank</button>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn ghost" id="addAmountCancelBtn" type="button">Cancel</button>
+      <button class="btn moss" id="addAmountSaveBtn" type="button">Save</button>
+    </div>
+  </div>
 </div>
-</header>
-<main class="max-w-6xl mx-auto px-4 py-6">
-<div class="mb-8">
-<div class="flex items-center gap-2 mb-3 grayscale-target focus-transition">
-<span class="bg-slate-800 text-white font-black text-[10px] px-2 py-0.5 rounded">STEP 1</span>
-<p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Select Exploration Category Matrix</p>
+
+<!-- Add Expense modal -->
+<div class="modal-overlay" id="addExpenseModal">
+  <div class="modal-card">
+    <div class="modal-title">Add Expense</div>
+    <div class="msg" id="addExpenseMsg"></div>
+    <div class="field"><label>Amount (₹)</label><input id="addExpenseValue" type="number" placeholder="0.00" /></div>
+    <div class="field"><label>Description</label><input id="addExpenseDescription" type="text" placeholder="e.g. Reagent stock" /></div>
+    <div class="field"><label>Category</label>
+      <select class="field-select" id="addExpenseCategory">
+        <option>Rent</option><option>Salary</option><option>Supplies</option>
+        <option>Electricity</option><option>Maintenance</option><option>Other</option>
+      </select>
+    </div>
+    <div class="field"><label>Paid from</label>
+      <div class="mode-pills" id="addExpenseModePills">
+        <button type="button" class="mode-pill selected" data-mode="Cash">Cash</button>
+        <button type="button" class="mode-pill" data-mode="UPI">UPI</button>
+        <button type="button" class="mode-pill" data-mode="Card">Card</button>
+        <button type="button" class="mode-pill" data-mode="Bank">Bank</button>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn ghost" id="addExpenseCancelBtn" type="button">Cancel</button>
+      <button class="btn moss" id="addExpenseSaveBtn" type="button">Save</button>
+    </div>
+  </div>
 </div>
-<div class="grid grid-cols-2 md:grid-cols-6 gap-3.5 relative z-10">
-<div class="focus-transition border-2 border-transparent bg-white p-4 rounded-xl shadow-xs cursor-pointer select-none" id="tabCard-all" onclick="selectTopLevelTab('all')">
-<div class="flex items-center justify-between mb-1">
-<span class="text-2xl">🔬</span>
-<span class="w-2 h-2 rounded-full" id="allDot"></span>
+
+<!-- Generic confirm modal -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal-card">
+    <div class="modal-title" id="confirmModalTitle">Are you sure?</div>
+    <div class="modal-actions">
+      <button class="btn ghost" id="confirmModalCancelBtn" type="button">Cancel</button>
+      <button class="btn red" id="confirmModalOkBtn" type="button">Confirm</button>
+    </div>
+  </div>
 </div>
-<h4 class="font-bold text-slate-800 text-sm md:text-base">All Tests</h4>
-<p class="text-slate-400 text-[10px] mt-0.5">View Entire Catalog</p>
-</div>
-<div class="focus-transition border-2 border-transparent bg-white p-4 rounded-xl shadow-xs cursor-pointer select-none" id="tabCard-packages" onclick="selectTopLevelTab('packages')">
-<div class="flex items-center justify-between mb-1">
-<span class="text-2xl">🎁</span>
-<span class="w-2 h-2 rounded-full" id="packagesDot"></span>
-</div>
-<h4 class="font-bold text-slate-800 text-sm md:text-base">Hattrick Packages</h4>
-<p class="text-slate-400 text-[10px] mt-0.5">Premium Bundles</p>
-</div>
-<div class="focus-transition border-2 border-transparent bg-white p-4 rounded-xl shadow-xs cursor-pointer select-none" id="tabCard-category" onclick="selectTopLevelTab('category')">
-<div class="flex items-center justify-between mb-1">
-<span class="text-2xl">📦</span>
-<span class="w-2 h-2 rounded-full" id="categoryDot"></span>
-</div>
-<h4 class="font-bold text-slate-800 text-sm md:text-base">Medical Category</h4>
-<p class="text-slate-400 text-[10px] mt-0.5">Database Live Catalog</p>
-</div>
-<div class="focus-transition border-2 border-transparent bg-white p-4 rounded-xl shadow-xs cursor-pointer select-none" id="tabCard-work" onclick="selectTopLevelTab('work')">
-<div class="flex items-center justify-between mb-1">
-<span class="text-2xl">💼</span>
-<span class="w-2 h-2 rounded-full" id="workDot"></span>
-</div>
-<h4 class="font-bold text-slate-800 text-sm md:text-base">Your Work</h4>
-<p class="text-slate-400 text-[10px] mt-0.5">Occupational Checks</p>
-</div>
-<div class="focus-transition border-2 border-transparent bg-white p-4 rounded-xl shadow-xs cursor-pointer select-none" id="tabCard-location" onclick="selectTopLevelTab('location')">
-<div class="flex items-center justify-between mb-1">
-<span class="text-2xl">📍</span>
-<span class="w-2 h-2 rounded-full" id="locationDot"></span>
-</div>
-<h4 class="font-bold text-slate-800 text-sm md:text-base">Your Location</h4>
-<p class="text-slate-400 text-[10px] mt-0.5">Environmental Risks</p>
-</div>
-<div class="focus-transition border-2 border-transparent bg-white p-4 rounded-xl shadow-xs cursor-pointer select-none" id="tabCard-hobby" onclick="selectTopLevelTab('hobby')">
-<div class="flex items-center justify-between mb-1">
-<span class="text-2xl">🏋️‍♂️</span>
-<span class="w-2 h-2 rounded-full" id="hobbyDot"></span>
-</div>
-<h4 class="font-bold text-slate-800 text-sm md:text-base">Your Hobby</h4>
-<p class="text-slate-400 text-[10px] mt-0.5">Lifestyle Profile</p>
-</div>
-</div>
-<div class="hidden bg-white border-2 border-orange-500 rounded-b-xl border-t-0 p-5 shadow-lg relative -mt-3 pt-6 z-0 keep-colored transition-all" id="subFilterContainer">
-<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 pb-2 border-b border-orange-100">
-<div class="flex items-center gap-2">
-<span class="bg-orange-600 text-white font-black text-[10px] px-2 py-0.5 rounded animate-pulse">● STEP 2</span>
-<span class="text-xs font-black text-orange-600 uppercase tracking-wider" id="subFilterTitle">Choose sub-package:</span>
-</div>
-<button class="text-xs text-slate-400 hover:text-red-500 font-bold cursor-pointer bg-slate-50 hover:bg-red-50 px-2 py-1 rounded border border-slate-200 transition-colors" onclick="clearSubFilter()">Reset Selection ×</button>
-</div>
-<div class="flex items-center gap-2.5 overflow-x-auto py-1 no-scrollbar min-h-[46px]" id="subFilterPillsWrapper"></div>
-</div>
-</div>
-<div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm grayscale-target focus-transition">
-<div class="flex items-start gap-3">
-<div class="p-2 bg-orange-600 text-white rounded-lg mt-0.5 shrink-0 shadow-sm animate-bounce">
-<svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-</svg>
-</div>
-<div>
-<h4 class="font-bold text-amber-900 text-sm md:text-base">Want to save more on health packages?</h4>
-<p class="text-xs text-amber-700 mt-0.5">When you contact our lab technician to book, ask about our ongoing premium seasonal discounts and custom group profile offers!</p>
-</div>
-</div>
-<a class="w-full md:w-auto text-center bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold uppercase tracking-wider px-5 py-2.5 rounded-lg transition-colors shadow-sm shrink-0" href="tel:+919500005061">
-                Contact Technician
-            </a>
-</div>
-<div class="flex justify-between items-center mb-4 grayscale-target focus-transition scroll-mt-28" id="catalogTargetHeader">
-<h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider" id="tableHeadlineText">Official Service Catalog</h3>
-</div>
-<div class="flex flex-col items-center justify-center py-20 bg-white rounded-xl border border-orange-100 shadow-sm grayscale-target focus-transition" id="loadingElement">
-<div class="loader mb-3"></div>
-<p class="text-slate-500 text-sm font-medium">Fetching public catalog securely...</p>
-</div>
-<div class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-4 rounded-xl text-center my-6 max-w-xl mx-auto shadow-sm" id="errorElement">
-<p class="font-bold text-base">Database connection issue</p>
-<p class="text-xs mt-1 text-red-600" id="errorMessage"></p>
-</div>
-<div class="hidden bg-white rounded-xl border border-orange-100 shadow-sm overflow-hidden mb-12 grayscale-target focus-transition" id="tableContainer">
-<div class="overflow-x-auto">
-<table class="w-full text-left border-collapse">
-<thead>
-<tr class="bg-orange-50/60 border-b border-orange-100 text-orange-950 text-xs uppercase font-bold tracking-wider" id="tableHeaderRow">
-<th class="py-3.5 px-6">Description Name</th>
-<th class="py-3.5 px-6 w-44 text-right">Pricing (INR)</th>
-<th class="py-3.5 px-6 w-24 text-center">Select</th>
-</tr>
-</thead>
-<tbody class="text-sm divide-y divide-slate-100" id="testTableBody"></tbody>
-</table>
-</div>
-</div>
-<div class="hidden text-center py-16 text-slate-500 bg-white border border-dashed border-orange-200 rounded-xl shadow-sm grayscale-target focus-transition" id="noResultsElement">
-<p class="text-base font-medium">No records found matching that criteria.</p>
-<p class="text-xs text-slate-400 mt-1">Try another matrix tab or reset filter controls.</p>
-</div>
-</main>
-<div class="fixed bottom-6 right-6 bg-gradient-to-r from-orange-600 to-amber-600 text-white px-5 py-4 rounded-full shadow-xl hidden md:flex items-center gap-3 cursor-pointer select-none transition-all hover:scale-105 active:scale-95 z-40 animate-pulse hover:animate-none grayscale-target focus-transition" id="floatingCartButton" onclick="toggleCartModal(true)">
-<div class="relative">
-<svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2.5" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-<path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 0a2 2 0 11-4 0 2 2 0 014 0z" stroke-linecap="round" stroke-linejoin="round"></path>
-</svg>
-<span class="absolute -top-2 -right-2 bg-white text-orange-600 font-black text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-orange-600 shadow-sm" id="cartCountBadge">0</span>
-</div>
-<span class="font-black text-sm tracking-wider uppercase">Go To Cart</span>
-</div>
-<div class="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-orange-600 to-amber-600 text-white px-4 py-4 shadow-2xl flex md:hidden justify-between items-center z-50 cursor-pointer border-t border-orange-400/20 backdrop-blur-md transition-all transform translate-y-full" id="mobileBottomCartBar" onclick="toggleCartModal(true)">
-<div class="flex items-center gap-3">
-<div class="bg-white/20 p-2 rounded-lg">
-<svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.5" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-<path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" stroke-linecap="round" stroke-linejoin="round"></path>
-</svg>
-</div>
-<div>
-<p class="text-lg font-black tracking-wide" id="mobileCartTotal">₹0.00</p>
-<p class="text-[11px] text-orange-100 font-bold uppercase tracking-wider" id="mobileCartCount">0 Selected Tests</p>
-</div>
-</div>
-<span class="bg-white text-orange-600 text-xs font-black uppercase tracking-wider px-4 py-2.5 rounded-lg shadow-sm">View Cart →</span>
-</div>
-<div class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-xs" id="cartModal">
-<div class="bg-white rounded-2xl w-full max-w-xl max-h-[80vh] overflow-hidden flex flex-col shadow-2xl border border-orange-100">
-<div class="p-4 border-b border-orange-100 flex justify-between items-center bg-orange-50/50">
-<div class="flex items-center gap-2">
-<h3 class="font-black text-lg text-slate-800 tracking-wide">Selected Test Cart</h3>
-<span class="bg-orange-600 text-white text-xs font-bold px-2 py-0.5 rounded-full" id="modalCartCount">0 Selected</span>
-</div>
-<button class="text-slate-400 hover:text-slate-600 font-bold text-xl p-1.5 focus:outline-none" onclick="toggleCartModal(false)">×</button>
-</div>
-<div class="p-4 overflow-y-auto flex-1 space-y-3" id="cartItemsContainer"></div>
-<div class="p-4 border-t border-orange-100 bg-slate-50 space-y-4">
-<div class="flex justify-between items-center">
-<span class="text-slate-500 font-bold text-sm">Total Estimated Price:</span>
-<span class="text-2xl font-black text-orange-600" id="cartTotalAmount">₹0.00</span>
-</div>
-<button class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2.5 shadow transition-colors text-base tracking-wide cursor-pointer" onclick="sendWhatsAppBooking()">
-                    Confirm &amp; Book via WhatsApp
-                </button>
-</div>
-</div>
-</div>
-<footer class="bg-white border-t border-orange-100 text-slate-400 py-6 text-center text-xs grayscale-target focus-transition">
-<p class="font-medium text-slate-500">© 2026 Hattrick Diagnostic Lab. All Rights Reserved.</p>
-</footer>
-<script>
-        const SUPABASE_URL = "https://ghpyktztztxrwombheah.supabase.co";
-        const SUPABASE_ANON_KEY = "sb_publishable_DcV-CK4A8aq_xxYOO7LMEA_Djr3Tz90";
-        
-        const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        let allTests = [];
-        let allPackages = [];
-        let dbCategories = []; 
-        let selectedCart = {}; 
 
-        let currentTopTab = ''; 
-        let currentSubFilterValue = ''; 
 
-        const profilePackages = {
-            work: [
-                { id: 'desk', label: '💻 Desk / IT Job Checkup', keywords: ['vitamin d', 'eye', 'lipid', 'cholesterol', 'uric'] },
-                { id: 'field', label: '🏃‍♂️ Field / Outdoor Work', keywords: ['hydration', 'electrolyte', 'sodium', 'kidney', 'cbc'] },
-                { id: 'night', label: '🌙 Night Shift Cycle Test', keywords: ['melatonin', 'thyroid', 'tsh', 'cortisol', 'glucose'] }
-            ],
-            location: [
-                { id: 'pollution', label: '🏭 City Pollution Zone', keywords: ['allergy', 'lung', 'ige', 'cbc', 'immune'] },
-                { id: 'industrial', label: '🧪 Industrial / Factory Area', keywords: ['lead', 'heavy metal', 'liver', 'toxicology', 'renal'] }
-            ],
-            hobby: [
-                { id: 'gym', label: '🏋️‍♂️ Gym Enthusiast Pack', keywords: ['protein', 'calcium', 'vitamin d', 'creatinine', 'urea', 'albumin', 'kidney'] },
-                { id: 'artist', label: '🎨 Creative Artist Profile', keywords: ['lead', 'heavy metal', 'toxic', 'liver', 'hepatic', 'blood'] }
-            ]
-        };
-
-        async function fetchServices() {
-            const loadingElement = document.getElementById('loadingElement');
-            const errorElement = document.getElementById('errorElement');
-            const errorMessage = document.getElementById('errorMessage');
-            const tableContainer = document.getElementById('tableContainer');
-
-            try {
-                const { data: testData, error: testError } = await sb
-                    .from('services')
-                    .select('id, name, price, active, category, visible_external')
-                    .eq('active', true)
-                    .eq('visible_external', true)
-                    .order('name', { ascending: true });
-
-                if (testError) throw testError;
-                allTests = testData;
-
-                const { data: pkgData, error: pkgError } = await sb
-                    .from('packages')
-                    .select('id, name, test_ids, mrp, rate, active')
-                    .eq('active', true)
-                    .order('name', { ascending: true });
-
-                if (!pkgError && pkgData) {
-                    allPackages = pkgData;
-                }
-
-                const uniqueCats = new Set();
-                allTests.forEach(t => {
-                    if(t.category) uniqueCats.add(t.category.trim());
-                });
-                dbCategories = Array.from(uniqueCats).sort();
-
-                resetTabUIElements();
-                displayTestsInTable(allTests);
-                
-                loadingElement.classList.add('hidden');
-                tableContainer.classList.remove('hidden');
-
-            } catch (error) {
-                console.error(error);
-                loadingElement.classList.add('hidden');
-                errorMessage.innerText = error.message || "Failed to sync setup from Supabase.";
-                errorElement.classList.remove('hidden');
-            }
-        }
-
-        function resetTabUIElements() {
-            const tabs = ['all', 'packages', 'category', 'work', 'location', 'hobby'];
-            tabs.forEach(t => {
-                const card = document.getElementById(`tabCard-${t}`);
-                const dot = document.getElementById(`${t}Dot`);
-                if(card) {
-                    card.className = "focus-transition bg-white p-4 rounded-xl shadow-sm border-2 border-transparent cursor-pointer hover:shadow-md transform hover:-translate-y-0.5 select-none";
-                }
-                if(dot) {
-                    dot.className = "w-2 h-2 bg-slate-300 rounded-full";
-                }
-            });
-            document.getElementById('subFilterContainer').classList.add('hidden');
-            document.getElementById('mainBody').classList.remove('grayscale-focus-mode');
-        }
-
-        function selectTopLevelTab(tabId) {
-            if (currentTopTab === tabId) {
-                currentTopTab = '';
-                currentSubFilterValue = '';
-                resetTabUIElements();
-                applyCombinedFilters();
-                return;
-            }
-
-            currentTopTab = tabId;
-            currentSubFilterValue = ''; 
-
-            if (tabId === 'all' || tabId === 'packages') {
-                document.getElementById('mainBody').classList.remove('grayscale-focus-mode');
-                
-                const tabs = ['all', 'packages', 'category', 'work', 'location', 'hobby'];
-                tabs.forEach(t => {
-                    const card = document.getElementById(`tabCard-${t}`);
-                    const dot = document.getElementById(`${t}Dot`);
-                    if(!card) return;
-
-                    if (t === tabId) {
-                        card.className = "focus-transition border-2 border-orange-500 bg-white p-4 rounded-xl shadow-xl cursor-pointer transform scale-[1.03] z-20 relative";
-                        if(dot) dot.className = "w-2 h-2 bg-orange-500 rounded-full animate-ping";
-                    } else {
-                        card.className = "focus-transition bg-white p-4 rounded-xl shadow-xs border-2 border-transparent cursor-pointer select-none opacity-80";
-                        if(dot) dot.className = "w-2 h-2 bg-transparent rounded-full";
-                    }
-                });
-                
-                document.getElementById('subFilterContainer').classList.add('hidden');
-                applyCombinedFilters();
-                
-                setTimeout(() => {
-                    document.getElementById('catalogTargetHeader').scrollIntoView({ behavior: 'smooth' });
-                }, 100);
-                return;
-            }
-
-            document.getElementById('mainBody').classList.add('grayscale-focus-mode');
-
-            const tabs = ['all', 'packages', 'category', 'work', 'location', 'hobby'];
-            tabs.forEach(t => {
-                const card = document.getElementById(`tabCard-${t}`);
-                const dot = document.getElementById(`${t}Dot`);
-                if(!card) return;
-
-                if (t === tabId) {
-                    card.className = "focus-transition keep-colored border-2 border-orange-500 bg-white p-4 rounded-t-xl rounded-b-none shadow-xl cursor-pointer transform scale-[1.03] z-20 relative";
-                    if(dot) dot.className = "w-2 h-2 bg-orange-500 rounded-full animate-ping";
-                } else {
-                    card.className = "focus-transition grayscale-target bg-white p-4 rounded-xl shadow-xs border-2 border-transparent cursor-pointer opacity-40 scale-95 select-none";
-                    if(dot) dot.className = "w-2 h-2 bg-transparent rounded-full";
-                }
-            });
-
-            document.getElementById('subFilterContainer').classList.remove('hidden');
-            renderSubFilterPills();
-            applyCombinedFilters();
-        }
-
-        function renderSubFilterPills() {
-            const container = document.getElementById('subFilterPillsWrapper');
-            const headline = document.getElementById('subFilterTitle');
-            container.innerHTML = "";
-
-            let displayLabel = "";
-            if (currentTopTab === 'category') displayLabel = "📂 Medical Categories:";
-            if (currentTopTab === 'work') displayLabel = "💼 Work Life Profiles:";
-            if (currentTopTab === 'location') displayLabel = "📍 Geography Environment:";
-            if (currentTopTab === 'hobby') displayLabel = "🏋️‍♂️ Lifestyle & Hobbies:";
-
-            headline.innerText = `${displayLabel} Choose option to load data directly:`;
-
-            if (currentTopTab === 'category') {
-                dbCategories.forEach(cat => {
-                    createPillButton(cat, cat, container);
-                });
-            } else {
-                const subOptions = profilePackages[currentTopTab] || [];
-                subOptions.forEach(opt => {
-                    createPillButton(opt.id, opt.label, container);
-                });
-            }
-        }
-
-        function createPillButton(id, label, parent) {
-            const btn = document.createElement('button');
-            const isActive = (currentSubFilterValue === id);
-            
-            if (isActive) {
-                btn.className = "bg-orange-600 text-white text-xs font-black px-4 py-2.5 rounded-full shadow-md whitespace-nowrap cursor-pointer transition-all shrink-0 ring-2 ring-orange-300 transform scale-105";
-            } else {
-                btn.className = "bg-orange-50/60 text-slate-800 hover:bg-orange-100 text-xs font-bold px-4 py-2.5 rounded-full border border-orange-200 whitespace-nowrap cursor-pointer transition-all shrink-0";
-            }
-            
-            btn.innerText = label;
-            btn.onclick = () => {
-                currentSubFilterValue = id;
-                document.getElementById('mainBody').classList.remove('grayscale-focus-mode');
-                renderSubFilterPills(); 
-                applyCombinedFilters();
-                
-                setTimeout(() => {
-                    document.getElementById('catalogTargetHeader').scrollIntoView({ behavior: 'smooth' });
-                }, 150);
-            };
-            parent.appendChild(btn);
-        }
-
-        function clearSubFilter() {
-            currentSubFilterValue = '';
-            renderSubFilterPills();
-            applyCombinedFilters();
-        }
-
-        function filterTests() {
-            applyCombinedFilters();
-        }
-
-        function applyCombinedFilters() {
-            const query = document.getElementById('searchInput').value.toLowerCase();
-            const headline = document.getElementById('tableHeadlineText');
-
-            if (currentTopTab === 'packages') {
-                headline.innerText = "Premium Bundled Health Packages";
-                let filteredPkgs = allPackages;
-                if (query !== '') {
-                    filteredPkgs = filteredPkgs.filter(p => p.name.toLowerCase().includes(query));
-                }
-                displayPackagesInTable(filteredPkgs);
-                return;
-            }
-
-            headline.innerText = "Official Service Catalog";
-            let filtered = allTests;
-
-            if (currentTopTab === 'all') {
-                filtered = allTests; 
-            } else if (currentTopTab !== '' && currentSubFilterValue !== '') {
-                if (currentTopTab === 'category') {
-                    filtered = filtered.filter(test => test.category && test.category.trim() === currentSubFilterValue);
-                } else {
-                    const configArr = profilePackages[currentTopTab] || [];
-                    const selectedConfig = configArr.find(c => c.id === currentSubFilterValue);
-                    
-                    if (selectedConfig && selectedConfig.keywords) {
-                        filtered = filtered.filter(test => {
-                            const nameLower = test.name.toLowerCase();
-                            return selectedConfig.keywords.some(kw => nameLower.includes(kw));
-                        });
-                    }
-                }
-            } else if (currentTopTab !== '' && currentSubFilterValue === '') {
-                filtered = []; 
-            }
-
-            if (query !== '') {
-                filtered = filtered.filter(test => test.name.toLowerCase().includes(query));
-            }
-
-            displayTestsInTable(filtered);
-        }
-
-        function displayTestsInTable(tests) {
-            const tableBody = document.getElementById('testTableBody');
-            const noResultsElement = document.getElementById('noResultsElement');
-            const tableContainer = document.getElementById('tableContainer');
-            
-            document.getElementById('tableHeaderRow').innerHTML = `
-                <th class="py-3.5 px-6">Test Description</th>
-                <th class="py-3.5 px-6 w-44 text-right">Price (INR)</th>
-                <th class="py-3.5 px-6 w-24 text-center">Select</th>
-            `;
-
-            tableBody.innerHTML = "";
-
-            if (tests.length === 0) {
-                tableContainer.classList.add('hidden');
-                noResultsElement.classList.remove('hidden');
-                return;
-            } else {
-                noResultsElement.classList.add('hidden');
-                tableContainer.classList.remove('hidden');
-            }
-
-            tests.forEach((test) => {
-                const row = document.createElement('tr');
-                row.className = "hover:bg-orange-50/40 transition-colors odd:bg-white even:bg-orange-50/10";
-                
-                const cartKey = `test-${test.id}`;
-                const isChecked = selectedCart[cartKey] ? 'checked' : '';
-
-                row.innerHTML = `
-                    <td class="py-4 px-6 font-semibold text-slate-800 tracking-wide capitalize text-base">${escapeHtml(test.name)}</td>
-                    <td class="py-4 px-6 text-right font-bold text-orange-600 text-base">₹${parseFloat(test.price).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                    <td class="py-4 px-6 text-center">
-                        <input type="checkbox" ${isChecked} onchange="toggleCartItem('test', '${test.id}', '${escapeHtml(test.name)}', ${test.price}, this.checked)" class="w-4 h-4 text-orange-600 border-orange-300 rounded focus:ring-orange-500 accent-orange-600 cursor-pointer">
-                    </td>
-                `;
-                tableBody.appendChild(row);
-            });
-        }
-
-        function displayPackagesInTable(pkgs) {
-            const tableBody = document.getElementById('testTableBody');
-            const noResultsElement = document.getElementById('noResultsElement');
-            const tableContainer = document.getElementById('tableContainer');
-
-            document.getElementById('tableHeaderRow').innerHTML = `
-                <th class="py-3.5 px-6">Health Package Name</th>
-                <th class="py-3.5 px-6 w-32 text-center">Original MRP</th>
-                <th class="py-3.5 px-6 w-44 text-right">Special Rate</th>
-                <th class="py-3.5 px-6 w-24 text-center">Select</th>
-            `;
-
-            tableBody.innerHTML = "";
-
-            if (pkgs.length === 0) {
-                tableContainer.classList.add('hidden');
-                noResultsElement.classList.remove('hidden');
-                return;
-            } else {
-                noResultsElement.classList.add('hidden');
-                tableContainer.classList.remove('hidden');
-            }
-
-            pkgs.forEach((pkg) => {
-                const row = document.createElement('tr');
-                row.className = "hover:bg-amber-50/40 transition-colors odd:bg-white even:bg-orange-50/10";
-                
-                const cartKey = `pkg-${pkg.id}`;
-                const isChecked = selectedCart[cartKey] ? 'checked' : '';
-                
-                const mrpVal = parseFloat(pkg.mrp || 0);
-                const rateVal = parseFloat(pkg.rate || 0);
-                
-                let savingsBadge = "";
-                if (mrpVal > rateVal) {
-                    const pct = Math.round(((mrpVal - rateVal) / mrpVal) * 100);
-                    savingsBadge = `<span class="ml-2 bg-emerald-100 text-emerald-800 font-bold text-[10px] px-1.5 py-0.5 rounded">${pct}% OFF</span>`;
-                }
-
-                row.innerHTML = `
-                    <td class="py-4 px-6 font-black text-slate-800 tracking-wide capitalize text-base">
-                        ${escapeHtml(pkg.name)}
-                        ${savingsBadge}
-                    </td>
-                    <td class="py-4 px-6 text-center text-xs line-through text-slate-400 font-medium">₹${mrpVal.toLocaleString('en-IN')}</td>
-                    <td class="py-4 px-6 text-right font-black text-emerald-600 text-base">₹${rateVal.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                    <td class="py-4 px-6 text-center">
-                        <input type="checkbox" ${isChecked} onchange="toggleCartItem('pkg', '${pkg.id}', '${escapeHtml(pkg.name)}', ${rateVal}, this.checked)" class="w-4 h-4 text-emerald-600 border-amber-300 rounded focus:ring-emerald-500 accent-emerald-600 cursor-pointer">
-                    </td>
-                `;
-                tableBody.appendChild(row);
-            });
-        }
-
-        function toggleCartItem(type, id, name, price, isSelected) {
-            const cartKey = `${type}-${id}`;
-            if (isSelected) {
-                selectedCart[cartKey] = { id, name, price, type };
-            } else {
-                delete selectedCart[cartKey];
-            }
-            updateCartUI();
-        }
-
-        function updateCartUI() {
-            const count = Object.keys(selectedCart).length;
-            
-            document.getElementById('cartCountBadge').innerText = count;
-            document.getElementById('modalCartCount').innerText = `${count} Selected`;
-            document.getElementById('mobileCartCount').innerText = `${count} Selected Items`;
-
-            const cartBtn = document.getElementById('floatingCartButton');
-            cartBtn.classList.remove('cart-animate');
-            void cartBtn.offsetWidth; 
-            cartBtn.classList.add('cart-animate');
-
-            let total = 0;
-            for (let key in selectedCart) {
-                total += parseFloat(selectedCart[key].price);
-            }
-            
-            const formattedPrice = `₹${total.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-            document.getElementById('cartTotalAmount').innerText = formattedPrice;
-            document.getElementById('mobileCartTotal').innerText = formattedPrice;
-
-            const mobileBar = document.getElementById('mobileBottomCartBar');
-            if (count > 0) {
-                mobileBar.classList.remove('translate-y-full');
-            } else {
-                mobileBar.classList.add('translate-y-full');
-            }
-        }
-
-        function toggleCartModal(show) {
-            const modal = document.getElementById('cartModal');
-            const container = document.getElementById('cartItemsContainer');
-            
-            if (show) {
-                container.innerHTML = "";
-                const items = Object.values(selectedCart);
-                
-                if (items.length === 0) {
-                    container.innerHTML = `<p class="text-slate-400 text-center py-8 text-sm">Your cart is empty.</p>`;
-                } else {
-                    items.forEach((item) => {
-                        const isPkg = item.type === 'pkg';
-                        const badgeHtml = isPkg ? `<span class="bg-amber-100 text-amber-800 text-[9px] font-bold px-1 rounded uppercase mr-1">Package</span>` : '';
-                        const cartKey = `${item.type}-${item.id}`;
-                        
-                        const div = document.createElement('div');
-                        div.className = "flex justify-between items-center bg-slate-50 p-3 rounded-lg border border-slate-100";
-                        div.innerHTML = `
-                            <div>
-                                <h5 class="font-bold text-slate-800 capitalize text-sm">${badgeHtml}${item.name}</h5>
-                            </div>
-                            <div class="flex items-center gap-3">
-                                <span class="font-bold text-orange-600 text-sm">₹${parseFloat(item.price).toLocaleString('en-IN')}</span>
-                                <button onclick="removeSpecificCartItem('${cartKey}')" class="text-red-500 hover:text-red-700 font-bold text-lg px-1 cursor-pointer">&times;</button>
-                            </div>
-                        `;
-                        container.appendChild(div);
-                    });
-                }
-                modal.classList.remove('hidden');
-            } else {
-                modal.classList.add('hidden');
-            }
-        }
-
-        function removeSpecificCartItem(cartKey) {
-            delete selectedCart[cartKey];
-            updateCartUI();
-            toggleCartModal(true); 
-            applyCombinedFilters(); 
-        }
-
-        function sendWhatsAppBooking() {
-            const items = Object.values(selectedCart);
-            if (items.length === 0) {
-                alert("Please select at least one test or package to book!");
-                return;
-            }
-
-            const targetPhone = "9500005061";
-            let message = `Hello Hattrick Lab Team,\nI would like to book the following laboratory services:\n\n`;
-            
-            let total = 0;
-            items.forEach((item, index) => {
-                const prefix = item.type === 'pkg' ? '[PACKAGE] ' : '[TEST] ';
-                message += `${index + 1}. *${prefix}${item.name.toUpperCase()}* - ₹${parseFloat(item.price).toLocaleString('en-IN')}\n`;
-                total += parseFloat(item.price);
-            });
-
-            message += `\n---------------------------\n`;
-            message += `*Total Amount:* ₹${total.toLocaleString('en-IN')}\n`;
-            message += `---------------------------\n`;
-            message += `Please confirm my appointment slot. Thank you.`;
-
-            const encodedText = encodeURIComponent(message);
-            window.open(`https://wa.me/${targetPhone}?text=${encodedText}`, '_blank');
-        }
-
-        function escapeHtml(str) {
-            if (!str) return '';
-            return str
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-        }
-
-        window.onload = fetchServices;
-    </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="assets/js/core/supabase-client.js"></script>
+<script src="assets/js/core/logo.js"></script>
+<script src="assets/js/core/datetime.js"></script>
+<script src="assets/js/core/screens.js"></script>
+<script src="assets/js/auth/login.js"></script>
+<script src="assets/js/dashboard/admin-stats.js"></script>
+<script src="assets/js/employee/admin-employee-management.js"></script>
+<script src="assets/js/services/admin-services-management.js"></script>
+<script src="assets/js/services/packages.js"></script>
+<script src="assets/js/employee/employee-timer.js"></script>
+<script src="assets/js/customer/customer-registration.js"></script>
+<script src="assets/js/dashboard/accounts-summary-card.js"></script>
+<script src="assets/js/customer/patient-id-autosuggest.js"></script>
+<script src="assets/js/customer/patient-search.js"></script>
+<script src="assets/js/invoice/service-selection.js"></script>
+<script src="assets/js/invoice/tests-packages-toggle.js"></script>
+<script src="assets/js/invoice/package-selector.js"></script>
+<script src="assets/js/invoice/payment-type.js"></script>
+<script src="assets/js/invoice/calculation.js"></script>
+<script src="assets/js/invoice/save-invoice-history.js"></script>
+<script src="assets/js/invoice/save-to-ledger.js"></script>
+<script src="assets/js/invoice/print-save-validate.js"></script>
+<script src="assets/js/accounts/live-balances.js"></script>
+<script src="assets/js/accounts/employee-daily-closing.js"></script>
+<script src="assets/js/accounts/admin-overview.js"></script>
+<script src="assets/js/accounts/admin-full-ledger.js"></script>
+<script src="assets/js/ui/modal-helpers.js"></script>
+<script src="assets/js/ui/confirm-modal.js"></script>
+<script src="assets/js/accounts/add-amount.js"></script>
+<script src="assets/js/accounts/add-expense.js"></script>
+<script src="assets/js/accounts/csv-export.js"></script>
+<script src="assets/js/accounts/expenses.js"></script>
+<script src="assets/js/accounts/closing-check.js"></script>
+<script src="assets/js/accounts/pending-payments.js"></script>
+<script src="assets/js/accounts/transactions-history.js"></script>
+<script src="assets/js/ui/accounts-subtabs.js"></script>
+<script src="assets/js/inventory/inventory-update.js"></script>
+<script src="assets/js/ui/tabs.js"></script>
+<script src="assets/js/ui/view-mode.js"></script>
+<script src="assets/js/core/init.js"></script>
 </body>
 </html>
