@@ -58,6 +58,7 @@
     <button class="tab-btn" data-tab="admin-services">Services</button>
     <button class="tab-btn" data-tab="admin-accounts">Accounts</button>
     <button class="tab-btn" data-tab="admin-customers">Customers</button>
+    <button class="tab-btn" data-tab="admin-inventory">Inventory</button>
   </div>
 
   <!-- Dashboard -->
@@ -67,6 +68,7 @@
       <div class="stat-card" id="statCustomersCard" style="cursor:pointer;"><div class="stat-value" id="statCustomers">—</div><div class="stat-label">Customers ›</div></div>
       <div class="stat-card" id="statServicesCard" style="cursor:pointer;"><div class="stat-value" id="statServices">—</div><div class="stat-label">Services ›</div></div>
       <div class="stat-card"><div class="stat-value" id="statActive">—</div><div class="stat-label">On Shift Now</div></div>
+      <div class="stat-card" id="statInventoryCard" style="cursor:pointer;"><div class="stat-value" id="statLowStock">—</div><div class="stat-label">Low Stock ›</div></div>
       <div class="stat-card" id="statAccountsCard" style="cursor:pointer; text-align:left; padding:20px 22px;">
         <div class="stat-label" style="margin-bottom:12px;">Accounts ›</div>
         <div style="display:flex; justify-content:space-between; font-size:13px; padding:4px 0;"><span class="cust-meta">Cash Balance</span><strong id="dashCashBalance">—</strong></div>
@@ -345,6 +347,39 @@
       </div>
     </div>
     <button class="btn ghost" id="empLogout">Log out</button>
+  </div>
+
+  <div class="tab-panel" id="tab-admin-inventory">
+    <div class="panel">
+      <div class="panel-title">Low stock alerts</div>
+      <div id="adminInvLowStock"></div>
+    </div>
+
+    <div class="panel" id="adminInvAddForm">
+      <div class="panel-title">Add new item</div>
+      <div class="msg" id="adminInvAddMsg"></div>
+      <div class="form-row">
+        <div class="field"><label>Category</label>
+          <select class="field-select" id="adminInvNewCategory"></select>
+        </div>
+        <div class="field"><label>Item name</label><input id="adminInvNewItemName" type="text" placeholder="e.g. Alcohol swabs" /></div>
+        <div class="field"><label>Low-stock alert at</label><input id="adminInvNewThreshold" type="number" placeholder="5" /></div>
+      </div>
+      <div class="field" id="adminInvNewCategoryCustomWrap" style="display:none;">
+        <label>New category name</label><input id="adminInvNewCategoryCustom" type="text" placeholder="e.g. IT & Electronics" />
+      </div>
+      <button class="btn moss" id="adminInvAddBtn">Add item</button>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">All inventory</div>
+      <div class="table-wrap">
+        <table class="cust-table" id="adminInvTable">
+          <thead><tr><th>Item</th><th>Category</th><th>Quantity</th><th>Alert at</th><th></th></tr></thead>
+          <tbody id="adminInvTableBody"></tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
   <div class="tabs">
@@ -763,6 +798,7 @@
 <script src="assets/js/accounts/transactions-history.js"></script>
 <script src="assets/js/ui/accounts-subtabs.js"></script>
 <script src="assets/js/inventory/inventory-update.js"></script>
+<script src="assets/js/inventory/admin-inventory.js"></script>
 <script src="assets/js/ui/tabs.js"></script>
 <script src="assets/js/ui/view-mode.js"></script>
 <script src="assets/js/core/init.js"></script>
