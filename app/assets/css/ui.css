@@ -110,3 +110,11 @@
     width:64px; text-align:center; padding:6px 4px; border:1px solid var(--rule); border-radius:6px;
     font-size:13px; flex-shrink:0;
   }
+
+  /* ---------- Low-stock alerts ---------- */
+  .inv-alert-row{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    padding:10px 12px; border-radius:8px; background:#fdeeea; border:1px solid #f3cdc2; margin-bottom:8px;
+  }
+  .inv-alert-item{ flex:1; font-size:13px; font-weight:600; color:var(--ink); }
+  .inv-alert-qty{ font-size:12px; font-weight:700; color:var(--red); white-space:nowrap; }
