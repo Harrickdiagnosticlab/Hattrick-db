@@ -1,4 +1,4 @@
-  /* ---------- Shared dashboard shell ---------- */
+/* ---------- Shared dashboard shell ---------- */
   .dash-wrap{ display:none; width:100%; max-width:760px; margin:0 auto; padding:48px 24px 80px; transition:max-width .2s; }
   body.pc-view .dash-wrap{ max-width:1360px; }
   body.pc-view .stats-grid{ grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); }
@@ -92,3 +92,21 @@
   .modal-actions{ display:flex; gap:10px; margin-top:20px; }
   .modal-actions .btn{ flex:1; }
 
+
+  /* ---------- Inventory cards ---------- */
+  .inv-category-card{ margin-bottom:18px; }
+  .inv-item-rows{ display:flex; flex-direction:column; gap:10px; }
+  .inv-item-row{
+    display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--rule);
+  }
+  .inv-item-row:last-child{ border-bottom:none; }
+  .inv-item-name{ flex:1; font-size:13px; color:var(--ink); }
+  .inv-step-btn{
+    width:30px; height:30px; border-radius:6px; border:1px solid var(--rule); background:#fff;
+    color:var(--ink-dim); font-size:16px; line-height:1; cursor:pointer; flex-shrink:0;
+  }
+  .inv-step-btn:hover{ border-color:var(--amber); color:var(--amber); }
+  .inv-qty-input{
+    width:64px; text-align:center; padding:6px 4px; border:1px solid var(--rule); border-radius:6px;
+    font-size:13px; flex-shrink:0;
+  }
