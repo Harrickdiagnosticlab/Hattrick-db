@@ -1,7 +1,6 @@
   // ---------- Inventory Update (Employee tab) ----------
-  // Master reference catalog — organized by category. This list only exists
-  // to power the dropdown below; no quantity/amount is stored here. Every
-  // submission is a fresh entry (quantity + note typed at submit time).
+  // Master reference catalog — organized by category. Only item names are
+  // defined here; quantities always come from (and are saved to) Supabase.
   const INVENTORY_CATALOG = {
     'Lab Consumables & Medical Supplies': [
       'Nipro 3ml syringe (box)',
@@ -85,85 +84,87 @@
     ]
   };
 
-  function invPopulateItemDropdown(){
-    const sel = document.getElementById('invItemSelect');
-    if (!sel || sel.dataset.populated === 'true') return;
-    sel.innerHTML = '<option value="">Select an item…</option>' +
-      Object.keys(INVENTORY_CATALOG).map(cat => {
-        const opts = INVENTORY_CATALOG[cat].map(item =>
-          `<option value="${escapeHtml(item)}" data-category="${escapeHtml(cat)}">${escapeHtml(item)}</option>`
-        ).join('');
-        return `<optgroup label="${escapeHtml(cat)}">${opts}</optgroup>`;
+  function invSlug(str){
+    return str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  }
+
+  function invBuildCards(){
+    const container = document.getElementById('invCategoryCards');
+    if (!container) return;
+
+    container.innerHTML = Object.keys(INVENTORY_CATALOG).map(cat => {
+      const catSlug = invSlug(cat);
+      const rows = INVENTORY_CATALOG[cat].map(item => {
+        const itemSlug = invSlug(item);
+        return `
+        <div class="inv-item-row">
+          <div class="inv-item-name">${escapeHtml(item)}</div>
+          <button type="button" class="inv-step-btn inv-minus" data-item="${escapeHtml(item)}">−</button>
+          <input type="number" class="inv-qty-input" id="inv-qty-${itemSlug}" data-item="${escapeHtml(item)}" data-category="${escapeHtml(cat)}" placeholder="0" />
+          <button type="button" class="inv-step-btn inv-plus" data-item="${escapeHtml(item)}">+</button>
+        </div>`;
       }).join('');
-    sel.dataset.populated = 'true';
-  }
 
-  async function loadInventoryList(){
-    const tbody = document.getElementById('invStockTableBody');
-    if (!tbody) return;
-    const { data, error } = await sb
-      .from('inventory')
-      .select('*')
-      .order('category', { ascending: true })
-      .order('item_name', { ascending: true });
+      return `
+      <div class="panel inv-category-card">
+        <div class="panel-header-row">
+          <div class="panel-title" style="margin-bottom:0;">${escapeHtml(cat)}</div>
+          <button type="button" class="btn moss btn-sm inv-update-btn" data-category="${escapeHtml(cat)}">Update</button>
+        </div>
+        <div class="inv-item-rows" data-category-rows="${catSlug}">${rows}</div>
+      </div>`;
+    }).join('');
 
-    if (error || !data || data.length === 0){
-      tbody.innerHTML = '<tr><td colspan="4" class="empty">No inventory entries yet.</td></tr>';
-      return;
-    }
+    // +/- steppers
+    container.querySelectorAll('.inv-plus').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const input = btn.previousElementSibling;
+        const current = parseInt(input.value, 10) || 0;
+        input.value = current + 1;
+      });
+    });
+    container.querySelectorAll('.inv-minus').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const input = btn.nextElementSibling;
+        const current = parseInt(input.value, 10) || 0;
+        input.value = Math.max(0, current - 1);
+      });
+    });
 
-    tbody.innerHTML = data.map(row => `
-      <tr>
-        <td>${escapeHtml(row.item_name)}</td>
-        <td class="cust-meta">${escapeHtml(row.category || '—')}</td>
-        <td class="cust-meta">${row.quantity === null || row.quantity === undefined ? '—' : escapeHtml(String(row.quantity))}</td>
-        <td class="cust-meta">${escapeHtml(row.note || '—')}</td>
-      </tr>
-    `).join('');
-  }
+    // Per-category "Update" button — saves every item in that card to Supabase
+    container.querySelectorAll('.inv-update-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const cat = btn.dataset.category;
+        const msgEl = document.getElementById('invMsg');
+        const inputs = container.querySelectorAll(`.inv-qty-input[data-category="${CSS.escape(cat)}"]`);
 
-  function invInit(){
-    invPopulateItemDropdown();
+        const rows = Array.from(inputs).map(inp => ({
+          item_name: inp.dataset.item,
+          category: cat,
+          quantity: inp.value === '' ? null : Number(inp.value),
+          updated_at: new Date().toISOString()
+        }));
 
-    const form = document.getElementById('invUpdateForm');
-    if (!form || form.dataset.wired === 'true') return;
-    form.dataset.wired = 'true';
+        btn.disabled = true;
+        const { error } = await sb.from('inventory').upsert(rows, { onConflict: 'item_name' });
+        btn.disabled = false;
 
-    document.getElementById('invSubmitBtn').addEventListener('click', async () => {
-      const sel = document.getElementById('invItemSelect');
-      const itemName = sel.value;
-      const selectedOption = sel.options[sel.selectedIndex];
-      const category = selectedOption ? selectedOption.dataset.category : '';
-      const qtyRaw = document.getElementById('invQtyInput').value.trim();
-      const note = document.getElementById('invNoteInput').value.trim();
-      const msgEl = document.getElementById('invMsg');
-
-      if (!itemName){ showMsg(msgEl, 'Please select an item.', 'err'); return; }
-
-      const quantity = qtyRaw === '' ? null : Number(qtyRaw);
-      if (qtyRaw !== '' && Number.isNaN(quantity)){ showMsg(msgEl, 'Quantity must be a number.', 'err'); return; }
-
-      const btn = document.getElementById('invSubmitBtn');
-      btn.disabled = true;
-
-      const { error } = await sb.from('inventory').upsert({
-        item_name: itemName,
-        category: category,
-        quantity: quantity,
-        note: note || null,
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'item_name' });
-
-      btn.disabled = false;
-
-      if (error){ showMsg(msgEl, error.message, 'err'); return; }
-
-      showMsg(msgEl, 'Inventory updated.', 'ok');
-      sel.value = '';
-      document.getElementById('invQtyInput').value = '';
-      document.getElementById('invNoteInput').value = '';
-      await loadInventoryList();
+        if (error){ showMsg(msgEl, error.message, 'err'); return; }
+        showMsg(msgEl, `${cat} updated.`, 'ok');
+      });
     });
   }
 
-  invInit();
+  async function loadInventoryList(){
+    invBuildCards();
+
+    const { data, error } = await sb.from('inventory').select('item_name, quantity');
+    if (error || !data) return;
+
+    data.forEach(row => {
+      const input = document.getElementById('inv-qty-' + invSlug(row.item_name));
+      if (input && row.quantity !== null && row.quantity !== undefined){
+        input.value = row.quantity;
+      }
+    });
+  }
