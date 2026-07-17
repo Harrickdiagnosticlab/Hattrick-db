@@ -10,6 +10,7 @@
       if (btn.dataset.tab === 'admin-accounts'){ acctRefreshAdminOverview(); }
       if (btn.dataset.tab === 'admin-customers'){ loadAdminCustomers(); }
       if (btn.dataset.tab === 'admin-dashboard'){ loadDashboardAccountsCard(); }
+      if (btn.dataset.tab === 'inventory'){ loadInventoryList(); }
     });
   });
 
