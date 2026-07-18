@@ -10,6 +10,7 @@
 <link rel="stylesheet" href="assets/css/core.css">
 <link rel="stylesheet" href="assets/css/auth.css">
 <link rel="stylesheet" href="assets/css/ui.css">
+<link rel="stylesheet" href="assets/css/tools-header-tool.css">
 <link rel="stylesheet" href="assets/css/dashboard.css">
 <link rel="stylesheet" href="assets/css/customer.css">
 <link rel="stylesheet" href="assets/css/employee.css">
@@ -367,9 +368,6 @@
     </div>
   </div>
 
-  <div class="tab-panel" id="tab-admin-tools">
-    <!-- Admin tools go here -->
-  </div>
 </div>
 
 <!-- EMPLOYEE DASHBOARD -->
@@ -699,10 +697,187 @@
     </div>
   </div>
 
-  <div class="tab-panel" id="tab-tools">
-    <!-- Employee tools go here -->
+</div>
+
+<div id="toolsSharedRoot" class="tools-shared-root">
+  <div class="tool-header-changer">
+<div class="wrap">
+
+  <div class="app-header">
+    <h1>Hattrick Diagnostic Lab — Invoice Header Tool</h1>
+    <p>Upload the invoice PDF, pick a saved partner (or add a new one), preview the header, then generate the final PDF.</p>
   </div>
 
+  <div class="steps">
+    <div class="step-pill" id="pill-1"><span class="step-num">1</span>Invoice PDF</div>
+    <div class="step-pill" id="pill-2"><span class="step-num">2</span>Partner</div>
+    <div class="step-pill" id="pill-3"><span class="step-num">3</span>Preview</div>
+    <div class="step-pill" id="pill-4"><span class="step-num">4</span>Download</div>
+  </div>
+
+  <!-- STEP 1: Upload PDF -->
+  <div class="card">
+    <h2>1. Select the invoice PDF</h2>
+    <p class="hint">This is the report that will get the new Hattrick header on every page.</p>
+    <div class="file-picker" id="pdfPicker">
+      <div class="fp-icon">📄</div>
+      <div class="fp-body">
+        <div class="fp-title" id="pdfTitle">No file selected yet</div>
+        <div class="fp-sub" id="pdfSub">Choose the invoice PDF, or drag & drop it onto this box</div>
+        <div class="fp-input-row">
+          <input type="file" id="pdfInput" accept="application/pdf">
+        </div>
+      </div>
+    </div>
+    <div class="status err hidden" id="pdfStatus"></div>
+  </div>
+
+  <!-- STEP 2: Partner (saved profiles, or add a new one) -->
+  <div class="card">
+    <h2>2. Choose partner</h2>
+    <p class="hint">Pick a partner you've used before, or add a new one — its logos and spacing get remembered on this device.</p>
+
+    <div id="savedPartnersWrap" class="hidden">
+      <div class="partner-grid" id="partnerGrid"></div>
+    </div>
+
+    <div class="status err hidden" id="partnerLoadError"></div>
+
+    <button type="button" class="add-partner-btn" id="addPartnerBtn">+ Add new partner</button>
+
+    <div class="new-partner-form hidden" id="newPartnerForm">
+      <div class="field" style="max-width:320px;">
+        <label for="partnerName">Partner name</label>
+        <input type="text" id="partnerName" placeholder="e.g. SRM Labs">
+      </div>
+
+      <h2 style="font-size:.92rem;margin-top:18px;">Hattrick (own) logo</h2>
+      <div class="file-picker" id="ownPicker">
+        <img class="fp-thumb hidden" id="ownThumb" alt="Own logo preview">
+        <div class="fp-icon" id="ownIconWrap">🖼️</div>
+        <div class="fp-body">
+          <div class="fp-title" id="ownTitle">No logo selected yet</div>
+          <div class="fp-sub">PNG or JPG, or drag & drop it here</div>
+          <div class="fp-input-row">
+            <input type="file" id="ownInput" accept="image/*">
+          </div>
+        </div>
+      </div>
+
+      <h2 style="font-size:.92rem;margin-top:16px;">Partner logo</h2>
+      <div class="file-picker" id="partnerPicker">
+        <img class="fp-thumb hidden" id="partnerThumb" alt="Partner logo preview">
+        <div class="fp-icon" id="partnerIconWrap">🖼️</div>
+        <div class="fp-body">
+          <div class="fp-title" id="partnerTitle">No logo selected yet</div>
+          <div class="fp-sub">PNG or JPG, or drag & drop it here</div>
+          <div class="fp-input-row">
+            <input type="file" id="partnerInput" accept="image/*">
+          </div>
+        </div>
+      </div>
+
+      <p class="hint" style="margin:16px 0 10px;">Where should the header go?</p>
+      <div class="mode-group" id="modeGroup">
+        <label class="mode-option checked" data-mode="push">
+          <input type="radio" name="headerMode" value="push" checked>
+          <div>
+            <div class="mo-title">Add new space for the header<span class="mo-badge">Recommended</span></div>
+            <div class="mo-sub">Pushes all existing content down and inserts a fresh strip at the top for the header. Nothing on the original page is ever covered — safe even with 0mm top spacing.</div>
+          </div>
+        </label>
+        <label class="mode-option" data-mode="overlay">
+          <input type="radio" name="headerMode" value="overlay">
+          <div>
+            <div class="mo-title">Overlay on the existing top area</div>
+            <div class="mo-sub">Draws the header directly over the current top of the page (old behaviour). Only use this if the source PDF already has blank space reserved there — otherwise it can hide patient/report details.</div>
+          </div>
+        </label>
+      </div>
+
+      <p class="hint" id="spacingHint">Top spacing is the gap before the header content; header height and logo width control how big the header block itself is. Smaller header = less extra space added. Title, address and phone text always re-center and auto-shrink to fit.</p>
+      <div class="row">
+        <div class="field">
+          <label for="topSpace">Top spacing (mm)</label>
+          <input type="number" id="topSpace" value="0" min="0" max="100" step="0.5">
+        </div>
+        <div class="field">
+          <label for="sideSpace">Side spacing (mm)</label>
+          <input type="number" id="sideSpace" value="15" min="0" max="50" step="0.5">
+        </div>
+        <div class="field">
+          <label for="headerHeight">Header block height (mm)</label>
+          <input type="number" id="headerHeight" value="28" min="20" max="60" step="0.5">
+        </div>
+        <div class="field">
+          <label for="logoSize">Logo width (mm)</label>
+          <input type="number" id="logoSize" value="22" min="12" max="40" step="0.5">
+        </div>
+      </div>
+      <div class="status ok" id="totalSpaceReadout" style="margin-top:-4px;margin-bottom:10px;"></div>
+
+      <label style="display:flex;gap:8px;align-items:flex-start;font-size:.85rem;margin:6px 0 16px;">
+        <input type="checkbox" id="savePartnerToggle" checked style="margin-top:3px;">
+        <span>Save this partner on this device — next time, just pick it from the list above instead of re-uploading logos.</span>
+      </label>
+
+      <div class="actions">
+        <button class="btn-good" id="usePartnerBtn" disabled>Use this partner</button>
+        <button class="btn-secondary hidden" id="cancelNewPartnerBtn" type="button">Cancel</button>
+      </div>
+      <div class="status err hidden" id="newPartnerStatus"></div>
+    </div>
+  </div>
+
+  <!-- STEP 3: Output -->
+  <div class="card hidden" id="outputCard">
+    <h2>3. Output</h2>
+    <p class="hint" id="activePartnerSummary"></p>
+    <div class="row">
+      <div class="field">
+        <label for="outName">Output file name</label>
+        <input type="text" id="outName" value="output_Hattrick">
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" id="previewBtn">Generate Preview</button>
+      <button class="btn-secondary" id="changePartnerBtn" type="button">Change partner</button>
+    </div>
+    <div class="status err hidden" id="settingsStatus"></div>
+  </div>
+
+  <!-- STEP 4: Preview -->
+  <div class="card hidden" id="previewCard">
+    <h2>4. Preview — page 1 with the new header</h2>
+    <div class="preview-note">⚠️ <div>This shows exactly how the header will look. Check logo placement, spacing and text before generating the final file.</div></div>
+    <div class="preview-box"><canvas id="previewCanvas"></canvas></div>
+    <div class="actions" style="margin-top:16px;">
+      <button class="btn-secondary" id="adjustBtn">🔄 Adjust settings</button>
+      <button class="btn-good" id="confirmBtn">✅ Looks good — Generate final PDF</button>
+    </div>
+    <div class="status" id="genStatus"></div>
+  </div>
+
+  <!-- STEP 5: Final -->
+  <div class="card hidden" id="finalCard">
+    <h2>5. Done</h2>
+    <div class="final-box">
+      <div style="font-size:1.6rem;">✅</div>
+      <div class="msg">
+        <strong>Header applied to every page.</strong>
+        <span id="finalFileLabel"></span>
+      </div>
+      <div class="actions" style="margin-top:0;">
+        <button class="btn-primary" id="downloadBtn">⬇️ Download PDF</button>
+        <button class="btn-secondary" id="printBtn">🖨️ Print PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>Runs entirely in your browser — the PDF and logos never leave your computer.</footer>
+</div>
+
+  </div>
 </div>
 
 <div id="invInvoicePrintArea"></div>
@@ -771,6 +946,8 @@
 
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="assets/js/core/supabase-client.js"></script>
 <script src="assets/js/core/logo.js"></script>
 <script src="assets/js/core/datetime.js"></script>
@@ -809,7 +986,7 @@
 <script src="assets/js/ui/accounts-subtabs.js"></script>
 <script src="assets/js/inventory/inventory-update.js"></script>
 <script src="assets/js/inventory/admin-inventory.js"></script>
-<script src="assets/js/tools/tools.js"></script>
+<script src="assets/js/tools/header-tool.js"></script>
 <script src="assets/js/ui/tabs.js"></script>
 <script src="assets/js/ui/view-mode.js"></script>
 <script src="assets/js/core/init.js"></script>
