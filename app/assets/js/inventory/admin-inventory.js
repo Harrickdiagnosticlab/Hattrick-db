@@ -1,10 +1,12 @@
-  // ---------- Admin: Inventory management (add/remove items, low-stock alerts) ----------
+// ---------- Admin: Inventory management (add/remove items, low-stock alerts) ----------
   async function loadAdminInventory(){
     const { data, error } = await sb.from('inventory').select('*').order('category').order('item_name');
     if (error || !data) return;
 
-    // Low-stock: no count entered yet, or at/below its threshold.
+    // Low-stock: alerts disabled for this item are skipped entirely.
+    // Otherwise: no count entered yet, or at/below its threshold.
     const lowStock = data.filter(row => {
+      if (row.alert_enabled === false) return false;
       const threshold = row.low_stock_threshold === null || row.low_stock_threshold === undefined ? 5 : row.low_stock_threshold;
       return row.quantity === null || row.quantity === undefined || Number(row.quantity) <= Number(threshold);
     });
@@ -52,12 +54,38 @@
         <td>${escapeHtml(row.item_name)}</td>
         <td class="cust-meta">${escapeHtml(row.category || '—')}</td>
         <td class="cust-meta">${row.quantity === null || row.quantity === undefined ? '—' : escapeHtml(String(row.quantity))}</td>
-        <td class="cust-meta">${row.low_stock_threshold === null || row.low_stock_threshold === undefined ? '—' : escapeHtml(String(row.low_stock_threshold))}</td>
+        <td class="cust-meta">
+          <input type="number" class="inv-threshold-input" data-id="${escapeHtml(row.id)}"
+            value="${row.low_stock_threshold === null || row.low_stock_threshold === undefined ? '' : escapeHtml(String(row.low_stock_threshold))}"
+            ${row.alert_enabled === false ? 'disabled' : ''} />
+        </td>
+        <td class="cust-meta" style="text-align:center;">
+          <input type="checkbox" class="inv-alert-toggle" data-id="${escapeHtml(row.id)}" ${row.alert_enabled === false ? '' : 'checked'} title="Alert enabled" />
+        </td>
         <td style="text-align:right;">
           <button class="emp-del inv-remove-btn" data-id="${escapeHtml(row.id)}" data-name="${escapeHtml(row.item_name)}" style="color:var(--red);">Remove</button>
         </td>
       </tr>
     `).join('');
+
+    tbody.querySelectorAll('.inv-threshold-input').forEach(input => {
+      input.addEventListener('change', async () => {
+        const val = input.value.trim();
+        await sb.from('inventory').update({
+          low_stock_threshold: val === '' ? null : Number(val)
+        }).eq('id', input.dataset.id);
+        await loadAdminInventory();
+      });
+    });
+
+    tbody.querySelectorAll('.inv-alert-toggle').forEach(cb => {
+      cb.addEventListener('change', async () => {
+        await sb.from('inventory').update({
+          alert_enabled: cb.checked
+        }).eq('id', cb.dataset.id);
+        await loadAdminInventory();
+      });
+    });
 
     tbody.querySelectorAll('.inv-remove-btn').forEach(btn => {
       btn.addEventListener('click', () => {
