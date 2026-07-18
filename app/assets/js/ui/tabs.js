@@ -1,4 +1,4 @@
-  // ---------- Tabs (scoped per dashboard, so admin and employee tabs don't clash) ----------
+// ---------- Tabs (scoped per dashboard, so admin and employee tabs don't clash) ----------
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const container = btn.closest('.dash-wrap');
@@ -18,8 +18,7 @@
       if (btn.dataset.tab === 'admin-accounts'){ acctRefreshAdminOverview(); }
       if (btn.dataset.tab === 'admin-customers'){ loadAdminCustomers(); }
       if (btn.dataset.tab === 'admin-inventory'){ loadAdminInventory(); }
-      if (btn.dataset.tab === 'admin-dashboard'){ loadDashboardAccountsCard(); }
+      if (btn.dataset.tab === 'admin-dashboard'){ loadDashboardAccountsCard(); loadAdminStats(); }
       if (btn.dataset.tab === 'inventory'){ loadInventoryList(); }
     });
   });
-
