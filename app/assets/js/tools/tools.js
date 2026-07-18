@@ -7,7 +7,7 @@
       id: 'invoice-header-tool',
       name: 'Invoice Header Tool',
       description: 'Replace an invoice PDF\'s header with a partner logo/branding, preview, and download or print.',
-      file: 'assets/tools/invoice-header-tool.html'
+      file: 'assets/js/tools/invoice-header-tool.html'
     }
   ];
 
