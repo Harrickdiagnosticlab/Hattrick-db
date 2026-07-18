@@ -192,6 +192,13 @@
 <p class="text-base font-medium">No records found matching that criteria.</p>
 <p class="text-xs text-slate-400 mt-1">Try another matrix tab or reset filter controls.</p>
 </div>
+<div class="hidden text-center py-16 px-6 bg-white border border-dashed border-orange-200 rounded-xl shadow-sm grayscale-target focus-transition" id="comingSoonElement">
+<div class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-orange-100 text-orange-600 mb-4">
+<svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+</div>
+<p class="text-base font-black text-slate-800" id="comingSoonTitle">Coming Soon</p>
+<p class="text-sm text-slate-500 mt-2 max-w-md mx-auto leading-relaxed">We're consulting with our doctors to put together the right tests for this profile. This section will be updated soon — thanks for your patience!</p>
+</div>
 </main>
 <div class="fixed bottom-6 right-6 bg-gradient-to-r from-orange-600 to-amber-600 text-white px-5 py-4 rounded-full shadow-xl hidden md:flex items-center gap-3 cursor-pointer select-none transition-all hover:scale-105 active:scale-95 z-40 animate-pulse hover:animate-none grayscale-target focus-transition" id="floatingCartButton" onclick="toggleCartModal(true)">
 <div class="relative">
@@ -248,12 +255,16 @@
 
         let allTests = [];
         let allPackages = [];
+        let allTestsById = {}; // unfiltered lookup (any active/visibility status) used only to resolve package contents
         let dbCategories = []; 
         let selectedCart = {}; 
 
         let currentTopTab = ''; 
         let currentSubFilterValue = ''; 
+        let expandedPkgs = {};
 
+        // NOTE: work/location/hobby profile configs below are kept for future use once
+        // finalized with the doctors — the tabs currently show a "Coming Soon" panel instead.
         const profilePackages = {
             work: [
                 { id: 'desk', label: '💻 Desk / IT Job Checkup', keywords: ['vitamin d', 'eye', 'lipid', 'cholesterol', 'uric'] },
@@ -286,6 +297,21 @@
 
                 if (testError) throw testError;
                 allTests = testData;
+
+                // Separate unfiltered fetch (no active/visible_external restriction) so that
+                // package "included tests" can resolve even if a test is internal-only or
+                // temporarily inactive on the public catalog.
+                const { data: rawTestData, error: rawTestError } = await sb
+                    .from('services')
+                    .select('id, name');
+
+                if (!rawTestError && rawTestData) {
+                    allTestsById = {};
+                    rawTestData.forEach(t => { allTestsById[String(t.id)] = t; });
+                } else {
+                    // fallback: at least use the filtered list so something renders
+                    allTests.forEach(t => { allTestsById[String(t.id)] = t; });
+                }
 
                 const { data: pkgData, error: pkgError } = await sb
                     .from('packages')
@@ -389,8 +415,12 @@
                 }
             });
 
-            document.getElementById('subFilterContainer').classList.remove('hidden');
-            renderSubFilterPills();
+            if (tabId === 'category') {
+                document.getElementById('subFilterContainer').classList.remove('hidden');
+                renderSubFilterPills();
+            } else {
+                document.getElementById('subFilterContainer').classList.add('hidden');
+            }
             applyCombinedFilters();
         }
 
@@ -456,6 +486,23 @@
         function applyCombinedFilters() {
             const query = document.getElementById('searchInput').value.toLowerCase();
             const headline = document.getElementById('tableHeadlineText');
+
+            const comingSoonMap = {
+                work: { headline: 'Your Work Profile', title: '💼 Occupational Checkup Packages — Coming Soon' },
+                location: { headline: 'Your Location Profile', title: '📍 Environmental Risk Packages — Coming Soon' },
+                hobby: { headline: 'Your Hobby Profile', title: '🏋️‍♂️ Lifestyle Packages — Coming Soon' }
+            };
+
+            if (comingSoonMap[currentTopTab]) {
+                document.getElementById('tableContainer').classList.add('hidden');
+                document.getElementById('noResultsElement').classList.add('hidden');
+                document.getElementById('errorElement').classList.add('hidden');
+                headline.innerText = comingSoonMap[currentTopTab].headline;
+                document.getElementById('comingSoonTitle').innerText = comingSoonMap[currentTopTab].title;
+                document.getElementById('comingSoonElement').classList.remove('hidden');
+                return;
+            }
+            document.getElementById('comingSoonElement').classList.add('hidden');
 
             if (currentTopTab === 'packages') {
                 headline.innerText = "Premium Bundled Health Packages";
@@ -562,7 +609,11 @@
 
             pkgs.forEach((pkg) => {
                 const row = document.createElement('tr');
-                row.className = "hover:bg-amber-50/40 transition-colors odd:bg-white even:bg-orange-50/10";
+                row.className = "hover:bg-amber-50/40 transition-colors odd:bg-white even:bg-orange-50/10 cursor-pointer";
+                row.onclick = (e) => {
+                    if (e.target.tagName === 'INPUT') return;
+                    togglePackageExpand(pkg.id);
+                };
                 
                 const cartKey = `pkg-${pkg.id}`;
                 const isChecked = selectedCart[cartKey] ? 'checked' : '';
@@ -576,10 +627,18 @@
                     savingsBadge = `<span class="ml-2 bg-emerald-100 text-emerald-800 font-bold text-[10px] px-1.5 py-0.5 rounded">${pct}% OFF</span>`;
                 }
 
+                const includedTests = getPackageTests(pkg);
+                const isExpanded = !!expandedPkgs[pkg.id];
+                const chevron = `<svg id="chev-${pkg.id}" class="w-4 h-4 inline-block ml-1.5 text-slate-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>`;
+
                 row.innerHTML = `
                     <td class="py-4 px-6 font-black text-slate-800 tracking-wide capitalize text-base">
-                        ${escapeHtml(pkg.name)}
+                        <span class="inline-flex items-center">
+                            ${escapeHtml(pkg.name)}
+                            ${chevron}
+                        </span>
                         ${savingsBadge}
+                        <p class="text-[11px] font-medium text-slate-400 normal-case mt-0.5">Includes ${includedTests.length} test${includedTests.length === 1 ? '' : 's'} · tap to view</p>
                     </td>
                     <td class="py-4 px-6 text-center text-xs line-through text-slate-400 font-medium">₹${mrpVal.toLocaleString('en-IN')}</td>
                     <td class="py-4 px-6 text-right font-black text-emerald-600 text-base">₹${rateVal.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
@@ -588,7 +647,57 @@
                     </td>
                 `;
                 tableBody.appendChild(row);
+
+                const detailRow = document.createElement('tr');
+                detailRow.id = `pkgDetail-${pkg.id}`;
+                detailRow.className = isExpanded ? '' : 'hidden';
+                detailRow.innerHTML = `
+                    <td colspan="4" class="px-6 pb-4 pt-0 bg-orange-50/20">
+                        ${getPackageTestsHtml(includedTests)}
+                    </td>
+                `;
+                tableBody.appendChild(detailRow);
             });
+        }
+
+        function getPackageTests(pkg) {
+            let ids = pkg.test_ids;
+            if (!ids) return [];
+            if (typeof ids === 'string') {
+                try { ids = JSON.parse(ids); } catch (e) {
+                    ids = ids.replace(/[{}]/g, '').split(',').map(s => s.trim()).filter(Boolean);
+                }
+            }
+            if (!Array.isArray(ids)) return [];
+            return ids
+                .map(id => allTestsById[String(id)])
+                .filter(Boolean);
+        }
+
+        function getPackageTestsHtml(includedTests) {
+            if (includedTests.length === 0) {
+                return `<p class="text-xs text-slate-400 italic py-2">Test details for this package aren't available right now.</p>`;
+            }
+            const chips = includedTests.map(t => `
+                <span class="inline-flex items-center gap-1 bg-white border border-orange-200 text-slate-700 text-xs font-semibold px-2.5 py-1.5 rounded-lg">
+                    <svg class="w-3 h-3 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                    ${escapeHtml(t.name)}
+                </span>
+            `).join('');
+            return `
+                <div class="border-t border-orange-100 pt-3">
+                    <p class="text-[10px] font-bold text-orange-600 uppercase tracking-wider mb-2">Tests Included in this Package</p>
+                    <div class="flex flex-wrap gap-2">${chips}</div>
+                </div>
+            `;
+        }
+
+        function togglePackageExpand(pkgId) {
+            expandedPkgs[pkgId] = !expandedPkgs[pkgId];
+            const detailRow = document.getElementById(`pkgDetail-${pkgId}`);
+            const chevron = document.getElementById(`chev-${pkgId}`);
+            if (detailRow) detailRow.classList.toggle('hidden', !expandedPkgs[pkgId]);
+            if (chevron) chevron.classList.toggle('rotate-180', !!expandedPkgs[pkgId]);
         }
 
         function toggleCartItem(type, id, name, price, isSelected) {
