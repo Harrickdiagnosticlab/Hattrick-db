@@ -118,3 +118,9 @@
   }
   .inv-alert-item{ flex:1; font-size:13px; font-weight:600; color:var(--ink); }
   .inv-alert-qty{ font-size:12px; font-weight:700; color:var(--red); white-space:nowrap; }
+
+  .inv-threshold-input{
+    width:60px; padding:6px 4px; text-align:center; border:1px solid var(--rule); border-radius:6px; font-size:12px;
+  }
+  .inv-threshold-input:disabled{ background:#f2ede4; color:var(--ink-dim); }
+  .inv-alert-toggle{ width:16px; height:16px; cursor:pointer; }
