@@ -5,7 +5,7 @@
       sb.from('customers').select('*', { count: 'exact', head: true }),
       sb.from('services').select('*', { count: 'exact', head: true }),
       sb.from('checkins').select('*', { count: 'exact', head: true }).is('check_out', null),
-      sb.from('inventory').select('quantity, low_stock_threshold')
+      sb.from('inventory').select('quantity, low_stock_threshold, alert_enabled')
     ]);
     const [emp, cust, svc, active, inv] = results;
     document.getElementById('statEmployees').textContent = (emp.status === 'fulfilled' && !emp.value.error) ? emp.value.count : '—';
@@ -15,6 +15,7 @@
 
     if (inv.status === 'fulfilled' && !inv.value.error && inv.value.data){
       const lowCount = inv.value.data.filter(row => {
+        if (row.alert_enabled === false) return false;
         const threshold = row.low_stock_threshold === null || row.low_stock_threshold === undefined ? 5 : row.low_stock_threshold;
         return row.quantity === null || row.quantity === undefined || Number(row.quantity) <= Number(threshold);
       }).length;
