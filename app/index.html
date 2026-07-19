@@ -700,16 +700,21 @@
 </div>
 
 <div id="toolsSharedRoot" class="tools-shared-root">
-  <div class="tool-header-changer">
+  <div class="tools-subnav">
+    <button class="tools-subtab-btn active" data-tool="header-changer">Report's Header UpdateTool</button>
+  </div>
+
+  <div class="tools-subpanel active" id="toolsSubpanel-header-changer">
+    <div class="tool-header-changer">
 <div class="wrap">
 
   <div class="app-header">
-    <h1>Report's Header Changer Tool</h1>
+    <h1>Report's Header update Tool</h1>
     <p>Upload the Report PDF, pick a saved partner (or add a new one), preview the header, then generate the final PDF.</p>
   </div>
 
   <div class="steps">
-    <div class="step-pill" id="pill-1"><span class="step-num">1</span>Report PDF</div>
+    <div class="step-pill" id="pill-1"><span class="step-num">1</span>Invoice PDF</div>
     <div class="step-pill" id="pill-2"><span class="step-num">2</span>Partner</div>
     <div class="step-pill" id="pill-3"><span class="step-num">3</span>Preview</div>
     <div class="step-pill" id="pill-4"><span class="step-num">4</span>Download</div>
@@ -836,7 +841,7 @@
     <div class="row">
       <div class="field">
         <label for="outName">Output file name</label>
-        <input type="text" id="outName" value="output_Hattrick">
+        <input type="text" id="outName" value="Patientname/age/Gender">
       </div>
     </div>
     <div class="actions">
@@ -877,6 +882,7 @@
   <footer>Runs entirely in your browser — the PDF and logos never leave your computer.</footer>
 </div>
 
+  </div>
   </div>
 </div>
 
@@ -987,6 +993,7 @@
 <script src="assets/js/inventory/inventory-update.js"></script>
 <script src="assets/js/inventory/admin-inventory.js"></script>
 <script src="assets/js/tools/header-tool.js"></script>
+<script src="assets/js/tools/tools-subnav.js"></script>
 <script src="assets/js/ui/tabs.js"></script>
 <script src="assets/js/ui/view-mode.js"></script>
 <script src="assets/js/core/init.js"></script>
