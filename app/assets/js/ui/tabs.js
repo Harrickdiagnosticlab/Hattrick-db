@@ -8,6 +8,8 @@
 
       const toolsShared = document.getElementById('toolsSharedRoot');
       if (btn.dataset.tab === 'tools' || btn.dataset.tab === 'admin-tools'){
+        const tabsNav = btn.closest('.tabs');
+        tabsNav.insertAdjacentElement('afterend', toolsShared);
         toolsShared.classList.add('active');
       } else {
         toolsShared.classList.remove('active');
@@ -18,6 +20,7 @@
       if (btn.dataset.tab === 'admin-accounts'){ acctRefreshAdminOverview(); }
       if (btn.dataset.tab === 'admin-customers'){ loadAdminCustomers(); }
       if (btn.dataset.tab === 'admin-inventory'){ loadAdminInventory(); }
+      if (btn.dataset.tab === 'admin-services'){ loadServices(); }
       if (btn.dataset.tab === 'admin-dashboard'){ loadDashboardAccountsCard(); loadAdminStats(); }
       if (btn.dataset.tab === 'inventory'){ loadInventoryList(); }
     });
