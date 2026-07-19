@@ -633,6 +633,7 @@ downloadBtn.addEventListener("click", () => {
   a.href = url; a.download = outName;
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 5000);
+  thcFullReset();
 });
 
 printBtn.addEventListener("click", () => {
@@ -642,5 +643,59 @@ printBtn.addEventListener("click", () => {
   const win = window.open(url, "_blank");
   if (win) win.addEventListener("load", () => { try { win.print(); } catch (e) {} });
 });
+
+/* ---------- Full reset — used after a successful download, and by the "Discard / Start over" button ---------- */
+function thcFullReset() {
+  state = {
+    pdfBytes: null,
+    activePartnerId: null,
+    activePartner: null,
+    newOwnLogoBytes: null,
+    newPartnerLogoBytes: null,
+    editingPartnerId: null,
+    finalPdfBytes: null,
+  };
+
+  // Report PDF picker
+  const pdfPicker = document.getElementById("pdfPicker");
+  pdfPicker.classList.remove("filled");
+  document.getElementById("pdfTitle").textContent = "No file selected yet";
+  document.getElementById("pdfSub").textContent = "Choose the Report PDF, or drag & drop it onto this box";
+  document.getElementById("pdfInput").value = "";
+  document.getElementById("pdfStatus").classList.add("hidden");
+
+  // Partner section
+  newPartnerForm.classList.add("hidden");
+  document.getElementById("cancelNewPartnerBtn").classList.add("hidden");
+  document.getElementById("addPartnerBtn").classList.remove("hidden");
+  partnerGrid.querySelectorAll(".partner-card").forEach((c) => c.classList.remove("selected"));
+  thcResetPicker("ownPicker", "ownTitle", "ownThumb", "ownIconWrap", "No logo selected yet");
+  thcResetPicker("partnerPicker", "partnerTitle", "partnerThumb", "partnerIconWrap", "No logo selected yet");
+  document.getElementById("partnerName").value = "";
+
+  // Output / preview / final cards
+  outputCard.classList.add("hidden");
+  previewCard.classList.add("hidden");
+  finalCard.classList.add("hidden");
+  document.getElementById("outName").value = "Patientname/age/Gender";
+  genStatus.textContent = "";
+  genStatus.className = "status";
+
+  // Pills back to step 1
+  thcRefreshTopPills();
+  thcSetPill(2, null);
+  thcSetPill(3, null);
+
+  document.querySelector(".tool-header-changer .app-header").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+const startOverBtn = document.getElementById("thcStartOverBtn");
+if (startOverBtn) {
+  startOverBtn.addEventListener("click", () => {
+    if (confirm("Discard everything and start over? Anything not downloaded yet will be lost.")) {
+      thcFullReset();
+    }
+  });
+}
 
 thcRefreshTopPills();
