@@ -25,7 +25,7 @@
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   background:var(--thc-bg);
   color:var(--thc-ink);
-  padding:32px 16px 80px;
+  padding:20px 16px 60px;
   border-radius:14px;
 }
 .tool-header-changer .wrap{max-width:880px;margin:0 auto;}
@@ -232,3 +232,18 @@
 /* ---------- Shared Tools section visibility (index.html integration) ---------- */
 .tools-shared-root{ display:none; }
 .tools-shared-root.active{ display:block; }
+
+.tools-subnav{
+  display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px; padding-bottom:16px;
+  border-bottom:1px solid #ecdfce;
+}
+.tools-subtab-btn{
+  font-family:'Inter',sans-serif; font-size:12px; font-weight:600; letter-spacing:.02em;
+  padding:9px 16px; border-radius:8px; border:1px solid #ecdfce; background:#fff;
+  color:#9c8a77; cursor:pointer; transition:border-color .15s,color .15s;
+}
+.tools-subtab-btn:hover{ border-color:#df7a37; color:#df7a37; }
+.tools-subtab-btn.active{ background:#df7a37; border-color:#df7a37; color:#fff; }
+
+.tools-subpanel{ display:none; }
+.tools-subpanel.active{ display:block; }
