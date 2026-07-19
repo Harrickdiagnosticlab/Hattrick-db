@@ -37,9 +37,9 @@ let state = {
 
 /* ---------- Saved partner profiles (persisted in this browser via localStorage) ---------- */
 const PARTNER_STORAGE_KEY = "hattrick_header_tool_partners_v1";
-let partnerProfiles = loadPartnerProfiles();
+let partnerProfiles = thcLoadPartnerProfiles();
 
-function loadPartnerProfiles() {
+function thcLoadPartnerProfiles() {
   try {
     const raw = localStorage.getItem(PARTNER_STORAGE_KEY);
     if (!raw) return {};
@@ -49,7 +49,7 @@ function loadPartnerProfiles() {
     return {}; // corrupted storage — start fresh rather than crash
   }
 }
-function savePartnerProfilesToDisk() {
+function thcSavePartnerProfilesToDisk() {
   try {
     localStorage.setItem(PARTNER_STORAGE_KEY, JSON.stringify(partnerProfiles));
     return true;
@@ -57,7 +57,7 @@ function savePartnerProfilesToDisk() {
     return false; // quota exceeded, storage disabled/private mode, etc.
   }
 }
-function bytesToB64(bytes) {
+function thcBytesToB64(bytes) {
   let bin = "";
   const chunk = 0x8000;
   for (let i = 0; i < bytes.length; i += chunk) {
@@ -65,7 +65,7 @@ function bytesToB64(bytes) {
   }
   return btoa(bin);
 }
-function b64ToBytesSafe(b64) {
+function thcB64ToBytesSafe(b64) {
   if (!b64) return null;
   try {
     const bin = atob(b64);
@@ -76,33 +76,33 @@ function b64ToBytesSafe(b64) {
     return null;
   }
 }
-function mimeFor(bytes) {
-  return detectImageType(bytes) === "jpg" ? "image/jpeg" : "image/png";
+function thcMimeFor(bytes) {
+  return thcDetectImageType(bytes) === "jpg" ? "image/jpeg" : "image/png";
 }
-function slugify(name) {
+function thcSlugify(name) {
   const s = (name || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
   return (s || "partner") + "-" + Date.now().toString(36);
 }
-function escapeHtml(s) {
+function thcEscapeHtml(s) {
   return (s || "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 
-function detectImageType(bytes) {
+function thcDetectImageType(bytes) {
   if (bytes[0] === 0x89 && bytes[1] === 0x50) return "png";
   if (bytes[0] === 0xFF && bytes[1] === 0xD8) return "jpg";
   return "png";
 }
 async function embedImageAuto(pdfDoc, bytes) {
-  const type = detectImageType(bytes);
+  const type = thcDetectImageType(bytes);
   return type === "jpg" ? pdfDoc.embedJpg(bytes) : pdfDoc.embedPng(bytes);
 }
-function fitBox(imgW, imgH, boxW, boxH) {
+function thcFitBox(imgW, imgH, boxW, boxH) {
   const scale = Math.min(boxW / imgW, boxH / imgH);
   const w = imgW * scale, h = imgH * scale;
   return { w, h, offX: (boxW - w) / 2, offY: (boxH - h) / 2 };
 }
 /* Shrink a font size (in .5pt steps) until the text fits maxWidth, never below minSize */
-function fitFontSize(font, text, maxWidth, startSize, minSize) {
+function thcFitFontSize(font, text, maxWidth, startSize, minSize) {
   let size = startSize;
   while (size > minSize && font.widthOfTextAtSize(text, size) > maxWidth) {
     size -= 0.5;
@@ -121,7 +121,7 @@ async function drawHeader(page, pageWidth, pageHeight, ownImg, partnerImg, topPa
     const boxYTop = topPaddingPt + LOGO_TOP_BUFFER;
     const boxW = logoWidthPt;
     const boxH = Math.max(headerHeightPt - LOGO_TOP_BUFFER - LOGO_BOTTOM_BUFFER, 10);
-    const fit = fitBox(ownImg.width, ownImg.height, boxW, boxH);
+    const fit = thcFitBox(ownImg.width, ownImg.height, boxW, boxH);
     const drawXTop = boxX + fit.offX;
     const drawYTop = boxYTop + fit.offY;
     page.drawImage(ownImg, { x: drawXTop, y: toPdfY(drawYTop + fit.h), width: fit.w, height: fit.h });
@@ -133,7 +133,7 @@ async function drawHeader(page, pageWidth, pageHeight, ownImg, partnerImg, topPa
     const boxYTop = topPaddingPt + LOGO_TOP_BUFFER;
     const boxW = logoWidthPt;
     const boxH = Math.max(headerHeightPt - LOGO_TOP_BUFFER - LOGO_BOTTOM_BUFFER, 10);
-    const fit = fitBox(partnerImg.width, partnerImg.height, boxW, boxH);
+    const fit = thcFitBox(partnerImg.width, partnerImg.height, boxW, boxH);
     const drawXTop = boxX + fit.offX;
     const drawYTop = boxYTop + fit.offY;
     page.drawImage(partnerImg, { x: drawXTop, y: toPdfY(drawYTop + fit.h), width: fit.w, height: fit.h });
@@ -148,9 +148,9 @@ async function drawHeader(page, pageWidth, pageHeight, ownImg, partnerImg, topPa
   let availableWidth = Math.max(rightBound - leftBound - 2 * TEXT_SIDE_MARGIN, 20);
   const centerX = (leftBound + rightBound) / 2;
 
-  const titleSize = fitFontSize(fonts.bold, title, availableWidth, TITLE_FONT_SIZE, MIN_TITLE_FONT_SIZE);
-  const addressSize = fitFontSize(fonts.regular, address, availableWidth, ADDRESS_FONT_SIZE, MIN_SMALL_FONT_SIZE);
-  const phoneSize = fitFontSize(fonts.regular, phone, availableWidth, PHONE_FONT_SIZE, MIN_SMALL_FONT_SIZE);
+  const titleSize = thcFitFontSize(fonts.bold, title, availableWidth, TITLE_FONT_SIZE, MIN_TITLE_FONT_SIZE);
+  const addressSize = thcFitFontSize(fonts.regular, address, availableWidth, ADDRESS_FONT_SIZE, MIN_SMALL_FONT_SIZE);
+  const phoneSize = thcFitFontSize(fonts.regular, phone, availableWidth, PHONE_FONT_SIZE, MIN_SMALL_FONT_SIZE);
 
   const titleWidth = fonts.bold.widthOfTextAtSize(title, titleSize);
   const addressWidth = fonts.regular.widthOfTextAtSize(address, addressSize);
@@ -227,8 +227,8 @@ async function buildHeaderedPdf(sourceBytes, ownLogoBytes, partnerLogoBytes, top
 }
 
 /* ---------- Generic file-picker wiring (uses the real input, no hiding tricks) ---------- */
-function wireFilePicker({ pickerEl, inputEl, titleEl, subEl, thumbEl, iconEl, accept, onFile, emptyTitle }) {
-  function handleFile(file) {
+function thcWireFilePicker({ pickerEl, inputEl, titleEl, subEl, thumbEl, iconEl, accept, onFile, emptyTitle }) {
+  function thcHandleFile(file) {
     if (!file) return;
     if (accept === "pdf" && file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
       titleEl.textContent = "That's not a PDF — please choose a .pdf file";
@@ -253,7 +253,7 @@ function wireFilePicker({ pickerEl, inputEl, titleEl, subEl, thumbEl, iconEl, ac
     });
   }
 
-  inputEl.addEventListener("change", (e) => handleFile(e.target.files[0]));
+  inputEl.addEventListener("change", (e) => thcHandleFile(e.target.files[0]));
 
   ["dragenter", "dragover"].forEach((evt) =>
     pickerEl.addEventListener(evt, (e) => { e.preventDefault(); pickerEl.classList.add("drag-over"); })
@@ -265,7 +265,7 @@ function wireFilePicker({ pickerEl, inputEl, titleEl, subEl, thumbEl, iconEl, ac
     const file = e.dataTransfer.files && e.dataTransfer.files[0];
     if (file) {
       inputEl.files = e.dataTransfer.files;
-      handleFile(file);
+      thcHandleFile(file);
     }
   });
 }
@@ -289,23 +289,23 @@ const savedPartnersWrap = document.getElementById("savedPartnersWrap");
 const partnerLoadError = document.getElementById("partnerLoadError");
 
 const pills = [1, 2, 3, 4].map((n) => document.getElementById("pill-" + n));
-function setPill(i, cls) {
+function thcSetPill(i, cls) {
   pills[i].classList.remove("active", "done");
   if (cls) pills[i].classList.add(cls);
 }
 
-function refreshTopPills() {
-  setPill(0, state.pdfBytes ? "done" : "active");
-  setPill(1, state.activePartner ? "done" : (state.pdfBytes ? "active" : null));
+function thcRefreshTopPills() {
+  thcSetPill(0, state.pdfBytes ? "done" : "active");
+  thcSetPill(1, state.activePartner ? "done" : (state.pdfBytes ? "active" : null));
 }
 
 /* ---------- Mode selector (used only inside the "new partner" form) ---------- */
 const modeGroup = document.getElementById("modeGroup");
 const spacingHint = document.getElementById("spacingHint");
-function getSelectedMode() {
+function thcGetSelectedMode() {
   return document.querySelector('input[name="headerMode"]:checked').value;
 }
-function setSelectedMode(mode) {
+function thcSetSelectedMode(mode) {
   document.querySelector(`input[name="headerMode"][value="${mode}"]`).checked = true;
   modeGroup.querySelectorAll(".mode-option").forEach((o) => o.classList.toggle("checked", o.dataset.mode === mode));
   spacingHint.textContent = mode === "overlay"
@@ -314,65 +314,65 @@ function setSelectedMode(mode) {
 }
 modeGroup.querySelectorAll(".mode-option").forEach((opt) => {
   opt.addEventListener("click", () => {
-    setSelectedMode(opt.dataset.mode);
-    updateTotalSpaceReadout();
+    thcSetSelectedMode(opt.dataset.mode);
+    thcUpdateTotalSpaceReadout();
   });
 });
 
 /* ---------- Live "total extra space" readout (new-partner form) ---------- */
 const totalSpaceReadout = document.getElementById("totalSpaceReadout");
-function updateTotalSpaceReadout() {
+function thcUpdateTotalSpaceReadout() {
   const topMm = parseFloat(document.getElementById("topSpace").value) || 0;
   const headerMm = parseFloat(document.getElementById("headerHeight").value) || 0;
   const total = (topMm + headerMm).toFixed(1);
-  if (getSelectedMode() === "push") {
+  if (thcGetSelectedMode() === "push") {
     totalSpaceReadout.textContent = `Total extra space that will be added at the top of every page: ${total} mm (top spacing + header height). Lower either value to push content down less.`;
   } else {
     totalSpaceReadout.textContent = `Header block covers ${headerMm} mm starting ${topMm} mm from the current top edge (existing content in that strip gets overlaid).`;
   }
 }
 ["topSpace", "headerHeight", "logoSize"].forEach((id) => {
-  document.getElementById(id).addEventListener("input", updateTotalSpaceReadout);
+  document.getElementById(id).addEventListener("input", thcUpdateTotalSpaceReadout);
 });
-updateTotalSpaceReadout();
+thcUpdateTotalSpaceReadout();
 
 /* ---------- File pickers ---------- */
-wireFilePicker({
+thcWireFilePicker({
   pickerEl: document.getElementById("pdfPicker"),
   inputEl: document.getElementById("pdfInput"),
   titleEl: document.getElementById("pdfTitle"),
   subEl: document.getElementById("pdfSub"),
   accept: "pdf",
-  onFile: (bytes) => { state.pdfBytes = bytes; refreshTopPills(); refreshOutputCardIfVisible(); },
+  onFile: (bytes) => { state.pdfBytes = bytes; thcRefreshTopPills(); thcRefreshOutputCardIfVisible(); },
 });
 
 const usePartnerBtn = document.getElementById("usePartnerBtn");
-function refreshUsePartnerButton() {
+function thcRefreshUsePartnerButton() {
   usePartnerBtn.disabled = !(state.newOwnLogoBytes && state.newPartnerLogoBytes);
 }
 
-wireFilePicker({
+thcWireFilePicker({
   pickerEl: document.getElementById("ownPicker"),
   inputEl: document.getElementById("ownInput"),
   titleEl: document.getElementById("ownTitle"),
   thumbEl: document.getElementById("ownThumb"),
   iconEl: document.getElementById("ownIconWrap"),
   accept: "image",
-  onFile: (bytes) => { state.newOwnLogoBytes = bytes; refreshUsePartnerButton(); },
+  onFile: (bytes) => { state.newOwnLogoBytes = bytes; thcRefreshUsePartnerButton(); },
 });
 
-wireFilePicker({
+thcWireFilePicker({
   pickerEl: document.getElementById("partnerPicker"),
   inputEl: document.getElementById("partnerInput"),
   titleEl: document.getElementById("partnerTitle"),
   thumbEl: document.getElementById("partnerThumb"),
   iconEl: document.getElementById("partnerIconWrap"),
   accept: "image",
-  onFile: (bytes) => { state.newPartnerLogoBytes = bytes; refreshUsePartnerButton(); },
+  onFile: (bytes) => { state.newPartnerLogoBytes = bytes; thcRefreshUsePartnerButton(); },
 });
 
 /* ---------- Partner grid (saved profiles) ---------- */
-function renderPartnerGrid() {
+function thcRenderPartnerGrid() {
   const ids = Object.keys(partnerProfiles);
   savedPartnersWrap.classList.toggle("hidden", ids.length === 0);
   partnerGrid.innerHTML = "";
@@ -384,45 +384,45 @@ function renderPartnerGrid() {
     const logosHtml = ok
       ? `<div class="pc-logos"><img src="data:${p.ownLogoMime || 'image/png'};base64,${p.ownLogoB64}" alt=""><img src="data:${p.partnerLogoMime || 'image/png'};base64,${p.partnerLogoB64}" alt=""></div>`
       : `<div class="pc-logos"><span class="pc-warn">⚠️</span></div>`;
-    card.innerHTML = `${logosHtml}<div class="pc-name">${escapeHtml(p.name || "Unnamed partner")}</div><button type="button" class="pc-del" title="Remove">✕</button>` +
+    card.innerHTML = `${logosHtml}<div class="pc-name">${thcEscapeHtml(p.name || "Unnamed partner")}</div><button type="button" class="pc-del" title="Remove">✕</button>` +
       (ok ? "" : `<div class="pc-error-msg">Saved logo files are missing — tap to re-add them.</div>`);
     card.addEventListener("click", (e) => {
       if (e.target.closest(".pc-del")) return;
-      selectExistingPartner(id);
+      thcSelectExistingPartner(id);
     });
     card.querySelector(".pc-del").addEventListener("click", (e) => {
       e.stopPropagation();
       if (confirm(`Remove saved partner "${p.name || "Unnamed partner"}"? This can't be undone.`)) {
         delete partnerProfiles[id];
-        savePartnerProfilesToDisk();
+        thcSavePartnerProfilesToDisk();
         if (state.activePartnerId === id) {
           state.activePartnerId = null;
           state.activePartner = null;
           outputCard.classList.add("hidden");
-          refreshTopPills();
+          thcRefreshTopPills();
         }
-        renderPartnerGrid();
+        thcRenderPartnerGrid();
       }
     });
     partnerGrid.appendChild(card);
   });
 }
 
-function selectExistingPartner(id) {
+function thcSelectExistingPartner(id) {
   const p = partnerProfiles[id];
   if (!p) return;
-  const ownBytes = b64ToBytesSafe(p.ownLogoB64);
-  const partnerBytes = b64ToBytesSafe(p.partnerLogoB64);
+  const ownBytes = thcB64ToBytesSafe(p.ownLogoB64);
+  const partnerBytes = thcB64ToBytesSafe(p.partnerLogoB64);
 
   if (!ownBytes || !partnerBytes) {
-    partnerLoadError.innerHTML = `⚠️ Couldn't load the saved logos for "<b>${escapeHtml(p.name || "this partner")}</b>" — they seem to be missing from this browser's storage. <button type="button" class="btn-secondary" id="fixPartnerBtn" style="margin-left:6px;">Re-add logos</button>`;
+    partnerLoadError.innerHTML = `⚠️ Couldn't load the saved logos for "<b>${thcEscapeHtml(p.name || "this partner")}</b>" — they seem to be missing from this browser's storage. <button type="button" class="btn-secondary" id="fixPartnerBtn" style="margin-left:6px;">Re-add logos</button>`;
     partnerLoadError.classList.remove("hidden");
-    document.getElementById("fixPartnerBtn").addEventListener("click", () => openNewPartnerForm(p, id));
+    document.getElementById("fixPartnerBtn").addEventListener("click", () => thcOpenNewPartnerForm(p, id));
     state.activePartnerId = null;
     state.activePartner = null;
     outputCard.classList.add("hidden");
-    refreshTopPills();
-    renderPartnerGrid();
+    thcRefreshTopPills();
+    thcRenderPartnerGrid();
     return;
   }
 
@@ -436,12 +436,12 @@ function selectExistingPartner(id) {
     topMm: p.topMm, sideMm: p.sideMm, headerMm: p.headerMm, logoMm: p.logoMm,
   };
   newPartnerForm.classList.add("hidden");
-  renderPartnerGrid();
-  refreshTopPills();
-  showOutputCard();
+  thcRenderPartnerGrid();
+  thcRefreshTopPills();
+  thcShowOutputCard();
 }
 
-function openNewPartnerForm(prefill, editingId) {
+function thcOpenNewPartnerForm(prefill, editingId) {
   state.editingPartnerId = editingId || null;
   state.newOwnLogoBytes = null;
   state.newPartnerLogoBytes = null;
@@ -451,19 +451,19 @@ function openNewPartnerForm(prefill, editingId) {
   document.getElementById("sideSpace").value = prefill ? prefill.sideMm : 15;
   document.getElementById("headerHeight").value = prefill ? prefill.headerMm : 28;
   document.getElementById("logoSize").value = prefill ? prefill.logoMm : 22;
-  setSelectedMode(prefill ? (prefill.mode || "push") : "push");
-  updateTotalSpaceReadout();
+  thcSetSelectedMode(prefill ? (prefill.mode || "push") : "push");
+  thcUpdateTotalSpaceReadout();
 
-  resetPicker("ownPicker", "ownTitle", "ownThumb", "ownIconWrap", "No logo selected yet");
-  resetPicker("partnerPicker", "partnerTitle", "partnerThumb", "partnerIconWrap", "No logo selected yet");
-  refreshUsePartnerButton();
+  thcResetPicker("ownPicker", "ownTitle", "ownThumb", "ownIconWrap", "No logo selected yet");
+  thcResetPicker("partnerPicker", "partnerTitle", "partnerThumb", "partnerIconWrap", "No logo selected yet");
+  thcRefreshUsePartnerButton();
 
   document.getElementById("newPartnerStatus").classList.add("hidden");
   document.getElementById("cancelNewPartnerBtn").classList.toggle("hidden", Object.keys(partnerProfiles).length === 0);
   newPartnerForm.classList.remove("hidden");
   newPartnerForm.scrollIntoView({ behavior: "smooth", block: "start" });
 }
-function resetPicker(pickerId, titleId, thumbId, iconId, emptyText) {
+function thcResetPicker(pickerId, titleId, thumbId, iconId, emptyText) {
   const picker = document.getElementById(pickerId);
   picker.classList.remove("filled");
   document.getElementById(titleId).textContent = emptyText;
@@ -473,7 +473,7 @@ function resetPicker(pickerId, titleId, thumbId, iconId, emptyText) {
   document.getElementById(iconId).classList.remove("hidden");
 }
 
-document.getElementById("addPartnerBtn").addEventListener("click", () => openNewPartnerForm(null, null));
+document.getElementById("addPartnerBtn").addEventListener("click", () => thcOpenNewPartnerForm(null, null));
 document.getElementById("cancelNewPartnerBtn").addEventListener("click", () => newPartnerForm.classList.add("hidden"));
 document.getElementById("changePartnerBtn").addEventListener("click", () => {
   outputCard.classList.add("hidden");
@@ -489,7 +489,7 @@ usePartnerBtn.addEventListener("click", () => {
   const sideMm = parseFloat(document.getElementById("sideSpace").value);
   const headerMm = parseFloat(document.getElementById("headerHeight").value);
   const logoMm = parseFloat(document.getElementById("logoSize").value);
-  const mode = getSelectedMode();
+  const mode = thcGetSelectedMode();
 
   if ([topMm, sideMm, headerMm, logoMm].some((v) => isNaN(v))) {
     status.textContent = "Please enter valid numeric values for the header settings.";
@@ -504,18 +504,18 @@ usePartnerBtn.addEventListener("click", () => {
     return;
   }
 
-  const id = state.editingPartnerId || slugify(name);
+  const id = state.editingPartnerId || thcSlugify(name);
   const wantSave = document.getElementById("savePartnerToggle").checked;
   let savedOk = true;
 
   if (wantSave) {
     partnerProfiles[id] = {
       name,
-      ownLogoB64: bytesToB64(state.newOwnLogoBytes), ownLogoMime: mimeFor(state.newOwnLogoBytes),
-      partnerLogoB64: bytesToB64(state.newPartnerLogoBytes), partnerLogoMime: mimeFor(state.newPartnerLogoBytes),
+      ownLogoB64: thcBytesToB64(state.newOwnLogoBytes), ownLogoMime: thcMimeFor(state.newOwnLogoBytes),
+      partnerLogoB64: thcBytesToB64(state.newPartnerLogoBytes), partnerLogoMime: thcMimeFor(state.newPartnerLogoBytes),
       mode, topMm, sideMm, headerMm, logoMm, savedAt: Date.now(),
     };
-    savedOk = savePartnerProfilesToDisk();
+    savedOk = thcSavePartnerProfilesToDisk();
     if (!savedOk) {
       delete partnerProfiles[id];
       status.textContent = "⚠️ Couldn't save this partner on your device (storage full or blocked by the browser). You can still continue with this file, but you'll need to re-enter these details next time.";
@@ -530,22 +530,22 @@ usePartnerBtn.addEventListener("click", () => {
     mode, topMm, sideMm, headerMm, logoMm,
   };
   newPartnerForm.classList.add("hidden");
-  renderPartnerGrid();
-  refreshTopPills();
-  showOutputCard();
+  thcRenderPartnerGrid();
+  thcRefreshTopPills();
+  thcShowOutputCard();
 });
 
-function showOutputCard() {
+function thcShowOutputCard() {
   outputCard.classList.remove("hidden");
   document.getElementById("activePartnerSummary").textContent =
     `Using "${state.activePartner.name}" — top ${state.activePartner.topMm}mm, side ${state.activePartner.sideMm}mm, header ${state.activePartner.headerMm}mm, logo ${state.activePartner.logoMm}mm.`;
   outputCard.scrollIntoView({ behavior: "smooth", block: "start" });
 }
-function refreshOutputCardIfVisible() {
+function thcRefreshOutputCardIfVisible() {
   // no-op placeholder kept for clarity; output card only needs a partner + pdf, both checked at generate time
 }
 
-renderPartnerGrid();
+thcRenderPartnerGrid();
 
 async function renderPdfPageToCanvas(pdfBytes, canvas) {
   const loadingTask = pdfjsLib.getDocument({ data: pdfBytes.slice() });
@@ -576,7 +576,7 @@ previewBtn.addEventListener("click", async () => {
     await renderPdfPageToCanvas(previewBytes, previewCanvas);
     previewCard.classList.remove("hidden");
     previewCard.scrollIntoView({ behavior: "smooth", block: "start" });
-    setPill(2, "active");
+    thcSetPill(2, "active");
     genStatus.textContent = "";
     genStatus.className = "status";
   } catch (err) {
@@ -591,7 +591,7 @@ previewBtn.addEventListener("click", async () => {
 adjustBtn.addEventListener("click", () => {
   previewCard.classList.add("hidden");
   outputCard.scrollIntoView({ behavior: "smooth", block: "start" });
-  setPill(2, null);
+  thcSetPill(2, null);
 });
 
 confirmBtn.addEventListener("click", async () => {
@@ -612,8 +612,8 @@ confirmBtn.addEventListener("click", async () => {
     finalFileLabel.textContent = "Saved as: " + outName;
     finalCard.classList.remove("hidden");
     finalCard.scrollIntoView({ behavior: "smooth", block: "start" });
-    setPill(2, "done");
-    setPill(3, "active");
+    thcSetPill(2, "done");
+    thcSetPill(3, "active");
   } catch (err) {
     genStatus.textContent = "Couldn't generate the final PDF: " + err.message;
     genStatus.className = "status err";
@@ -643,4 +643,4 @@ printBtn.addEventListener("click", () => {
   if (win) win.addEventListener("load", () => { try { win.print(); } catch (e) {} });
 });
 
-refreshTopPills();
+thcRefreshTopPills();
