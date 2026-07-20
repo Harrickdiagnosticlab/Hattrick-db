@@ -1,4 +1,4 @@
-  /* ---------- Shared dashboard shell ---------- */
+/* ---------- Shared dashboard shell ---------- */
   .dash-wrap{ display:none; width:100%; max-width:760px; margin:0 auto; padding:48px 24px 80px; transition:max-width .2s; }
   body.pc-view .dash-wrap{ max-width:1360px; }
   body.pc-view .stats-grid{ grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); }
@@ -124,3 +124,6 @@
   }
   .inv-threshold-input:disabled{ background:#f2ede4; color:var(--ink-dim); }
   .inv-alert-toggle{ width:16px; height:16px; cursor:pointer; }
+
+  /* ---------- Generic show/hide utility (used by lazy-loaded Tools) ---------- */
+  .tools-hide{ display:none !important; }
