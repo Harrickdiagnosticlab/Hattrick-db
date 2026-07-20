@@ -700,6 +700,9 @@
 </div>
 
 <div id="toolsSharedRoot" class="tools-shared-root">
+  <div id="toolsLoadingMsg" class="panel" style="text-align:center; padding:40px;">Loading tool…</div>
+
+  <div id="toolsContentWrap" class="hidden">
   <div class="tools-subnav">
     <button class="tools-subtab-btn active" data-tool="header-changer">Report's Header UpdateTool</button>
   </div>
@@ -885,6 +888,7 @@
 
   </div>
   </div>
+  </div>
 </div>
 
 <div id="invInvoicePrintArea"></div>
@@ -953,8 +957,6 @@
 
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="assets/js/core/supabase-client.js"></script>
 <script src="assets/js/core/logo.js"></script>
 <script src="assets/js/core/datetime.js"></script>
@@ -993,7 +995,6 @@
 <script src="assets/js/ui/accounts-subtabs.js"></script>
 <script src="assets/js/inventory/inventory-update.js"></script>
 <script src="assets/js/inventory/admin-inventory.js"></script>
-<script src="assets/js/tools/header-tool.js"></script>
 <script src="assets/js/tools/tools-subnav.js"></script>
 <script src="assets/js/ui/tabs.js"></script>
 <script src="assets/js/ui/view-mode.js"></script>
