@@ -1,4 +1,4 @@
-  // ---------- Customer registration (shared controller — used by Employee & Admin views) ----------
+// ---------- Customer registration (shared controller — used by Employee & Admin views) ----------
   const custMsg = document.getElementById('custMsg');
   const custTableBody = document.getElementById('custTableBody');
 
@@ -169,7 +169,11 @@
       applyFilter();
     }
 
-    document.getElementById(ids.searchId).addEventListener('input', applyFilter);
+    let searchDebounceHandle = null;
+    document.getElementById(ids.searchId).addEventListener('input', () => {
+      clearTimeout(searchDebounceHandle);
+      searchDebounceHandle = setTimeout(applyFilter, 300);
+    });
     document.getElementById(ids.archiveId).addEventListener('change', load);
 
     return { load };
@@ -193,4 +197,3 @@
   document.getElementById('statAccountsCard').addEventListener('click', () => {
     document.querySelector('#adminWrap .tab-btn[data-tab="admin-accounts"]').click();
   });
-
