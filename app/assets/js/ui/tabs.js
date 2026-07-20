@@ -4,19 +4,26 @@
   function loadToolsScriptsOnce(){
     if (toolsScriptsLoaded || toolsScriptsLoading) return;
     toolsScriptsLoading = true;
+    const onFail = () => {
+      toolsScriptsLoading = false;
+      document.getElementById('toolsLoadingMsg').textContent = 'Could not load the tool — check your internet connection and try again.';
+    };
     const s1 = document.createElement('script');
     s1.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js';
+    s1.onerror = onFail;
     s1.onload = () => {
       const s2 = document.createElement('script');
       s2.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+      s2.onerror = onFail;
       s2.onload = () => {
         const s3 = document.createElement('script');
         s3.src = 'assets/js/tools/header-tool.js';
+        s3.onerror = onFail;
         s3.onload = () => {
           toolsScriptsLoaded = true;
           toolsScriptsLoading = false;
-          document.getElementById('toolsLoadingMsg').classList.add('hidden');
-          document.getElementById('toolsContentWrap').classList.remove('hidden');
+          document.getElementById('toolsLoadingMsg').classList.add('tools-hide');
+          document.getElementById('toolsContentWrap').classList.remove('tools-hide');
         };
         document.body.appendChild(s3);
       };
