@@ -1,4 +1,31 @@
-// ---------- Tabs (scoped per dashboard, so admin and employee tabs don't clash) ----------
+// ---------- Tools: lazy-load heavy PDF libraries only when Tools tab is opened ----------
+  let toolsScriptsLoaded = false;
+  let toolsScriptsLoading = false;
+  function loadToolsScriptsOnce(){
+    if (toolsScriptsLoaded || toolsScriptsLoading) return;
+    toolsScriptsLoading = true;
+    const s1 = document.createElement('script');
+    s1.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js';
+    s1.onload = () => {
+      const s2 = document.createElement('script');
+      s2.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+      s2.onload = () => {
+        const s3 = document.createElement('script');
+        s3.src = 'assets/js/tools/header-tool.js';
+        s3.onload = () => {
+          toolsScriptsLoaded = true;
+          toolsScriptsLoading = false;
+          document.getElementById('toolsLoadingMsg').classList.add('hidden');
+          document.getElementById('toolsContentWrap').classList.remove('hidden');
+        };
+        document.body.appendChild(s3);
+      };
+      document.body.appendChild(s2);
+    };
+    document.body.appendChild(s1);
+  }
+
+  // ---------- Tabs (scoped per dashboard, so admin and employee tabs don't clash) ----------
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const container = btn.closest('.dash-wrap');
@@ -11,6 +38,7 @@
         const tabsNav = btn.closest('.tabs');
         tabsNav.insertAdjacentElement('afterend', toolsShared);
         toolsShared.classList.add('active');
+        loadToolsScriptsOnce();
       } else {
         toolsShared.classList.remove('active');
         container.querySelector('#tab-' + btn.dataset.tab).classList.add('active');
