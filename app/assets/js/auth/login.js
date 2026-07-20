@@ -1,4 +1,4 @@
-  // ---------- Login ----------
+// ---------- Login ----------
   const usernameInput = document.getElementById('username');
   const passwordInput = document.getElementById('password');
   const authSubmit = document.getElementById('authSubmit');
@@ -28,14 +28,16 @@
     if (adminMatch){
       usernameInput.value = ''; passwordInput.value = '';
       showScreen('admin');
-      await loadEmployees();
-      await loadServices();
-      await pkgLoadServiceSelector();
-      await pkgLoadList();
-      await loadAdminCustomers();
-      await loadAdminStats();
-      await acctRefreshAdminOverview();
-      await loadDashboardAccountsCard();
+      await Promise.allSettled([
+        loadEmployees(),
+        loadServices(),
+        pkgLoadServiceSelector(),
+        pkgLoadList(),
+        loadAdminCustomers(),
+        loadAdminStats(),
+        acctRefreshAdminOverview(),
+        loadDashboardAccountsCard()
+      ]);
       authSubmit.disabled = false;
       return;
     }
@@ -58,11 +60,13 @@
     document.getElementById('empGreeting').textContent = data.name || data.username;
     showScreen('employee');
     await loadOpenSession();
-    await loadHistory();
-    await loadCustomers();
-    await suggestNextPatientId();
-    await invLoadInitialData();
-    await acctRefreshEmployeeAccounts();
+    await Promise.allSettled([
+      loadHistory(),
+      loadCustomers(),
+      suggestNextPatientId(),
+      invLoadInitialData(),
+      acctRefreshEmployeeAccounts()
+    ]);
     startTicking();
   });
 
@@ -73,4 +77,3 @@
     openSession = null;
     showScreen('auth');
   });
-
