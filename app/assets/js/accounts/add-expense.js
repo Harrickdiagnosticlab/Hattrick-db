@@ -1,4 +1,4 @@
-  // ---------- Add Expense ----------
+// ---------- Add Expense ----------
   document.getElementById('ledgerAddExpenseBtn').addEventListener('click', () => {
     document.getElementById('addExpenseValue').value = '';
     document.getElementById('addExpenseDescription').value = '';
@@ -21,7 +21,7 @@
     }
 
     const { error } = await sb.from('expenses').insert({
-      date: acctToday(), category, description, amount, source: mode
+      date: acctToday(), category, description, amount, source: mode, added_by: 'admin'
     });
     if (error){ showMsg(msgEl, 'Could not save: ' + error.message, 'err'); return; }
 
@@ -30,4 +30,3 @@
     await acctLoadBalances();
     await expLoad();
   });
-
