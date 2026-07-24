@@ -1,6 +1,6 @@
-  // ---------- Expenses ----------
+// ---------- Expenses ----------
   async function expLoad(){
-    const { data, error } = await sb.from('expenses').select('*').order('date', { ascending: false }).limit(100);
+    const { data, error } = await sb.from('expenses').select('*').neq('added_by', 'admin').order('date', { ascending: false }).limit(100);
     const body = document.getElementById('expTableBody');
     if (error || !data || data.length === 0){
       body.innerHTML = '<tr><td colspan="5" class="empty">No expenses recorded yet.</td></tr>';
@@ -39,7 +39,7 @@
       return;
     }
 
-    const { error } = await sb.from('expenses').insert({ date, category, description, amount, source });
+    const { error } = await sb.from('expenses').insert({ date, category, description, amount, source, added_by: 'employee' });
     if (error){
       showMsg(document.getElementById('expMsg'), error.message, 'err');
       return;
@@ -51,4 +51,3 @@
     await expLoad();
     await acctLoadBalances();
   });
-
