@@ -1,4 +1,4 @@
-  // ---------- Patient ID auto-suggest (highest existing numeric ID + 1) ----------
+// ---------- Patient ID auto-suggest (highest existing numeric ID + 1) ----------
   async function suggestNextPatientId(){
     const { data } = await sb.from('customers').select('patientId');
     let maxNum = 0, width = 3; // default 3-digit padding, matching typical existing IDs like "030"
@@ -191,8 +191,8 @@
     syncInvInvoiceDate();
     invUpdateCustomerDisplay();
     invPopulateServiceSelector();
+    invUpdatePkgSuggestions();
     invPopulatePackageSelector();
     invHandlePaymentTypeChange();
     invCalculateTotal();
   }
-
