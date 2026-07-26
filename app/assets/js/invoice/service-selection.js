@@ -1,4 +1,4 @@
-  // ---------- Service selection ----------
+// ---------- Service selection ----------
   function invRenderServiceCheckboxes(testsToDisplay){
     const container = document.getElementById('invServiceSelectorContainer');
     container.innerHTML = '';
@@ -71,8 +71,50 @@
       invSelectedTests = invSelectedTests.filter(t => t.id !== testId);
     }
     invUpdateSelectionBadges();
+    invUpdatePkgSuggestions();
     invCalculateTotal();
   }
 
-  document.getElementById('invServiceSearch').addEventListener('input', (e) => invFilterServices(e.target.value));
+  // Shows which packages the currently-selected individual tests overlap
+  // with, and by how much — e.g. "5/10 matched" — sorted best-match first.
+  function invUpdatePkgSuggestions(){
+    const wrap = document.getElementById('invPkgSuggestWrap');
+    const list = document.getElementById('invPkgSuggestList');
+    if (!wrap || !list) return;
 
+    if (!invSelectedTests.length || !invAllPackages || !invAllPackages.length){
+      wrap.style.display = 'none';
+      return;
+    }
+
+    const selectedIds = new Set(invSelectedTests.map(t => t.id));
+    const matches = invAllPackages
+      .map(pkg => {
+        const testIds = pkg.test_ids || [];
+        const matchedCount = testIds.filter(id => selectedIds.has(id)).length;
+        return { pkg, matchedCount, total: testIds.length };
+      })
+      .filter(m => m.matchedCount > 0 && m.total > 0)
+      .sort((a, b) => (b.matchedCount / b.total) - (a.matchedCount / a.total) || b.matchedCount - a.matchedCount);
+
+    if (!matches.length){
+      wrap.style.display = 'none';
+      return;
+    }
+
+    wrap.style.display = 'block';
+    list.innerHTML = matches.map(m => {
+      const pct = Math.round((m.matchedCount / m.total) * 100);
+      const full = m.matchedCount === m.total;
+      return `
+        <div class="inv-pkg-suggest-item${full ? ' full-match' : ''}">
+          <div class="inv-pkg-suggest-row">
+            <span class="inv-pkg-suggest-name">${escapeHtml(m.pkg.name)}</span>
+            <span class="inv-pkg-suggest-count">${m.matchedCount}/${m.total} matched</span>
+          </div>
+          <div class="inv-pkg-suggest-bar"><div class="inv-pkg-suggest-bar-fill" style="width:${pct}%;"></div></div>
+        </div>`;
+    }).join('');
+  }
+
+  document.getElementById('invServiceSearch').addEventListener('input', (e) => invFilterServices(e.target.value));
