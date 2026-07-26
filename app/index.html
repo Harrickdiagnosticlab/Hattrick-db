@@ -493,11 +493,6 @@
           <input id="invServiceSearch" type="text" placeholder="Start typing test name..." />
         </div>
         <div class="inv-service-list" id="invServiceSelectorContainer"><p class="empty">Loading services…</p></div>
-
-        <div class="inv-pkg-suggest" id="invPkgSuggestWrap" style="display:none;">
-          <div class="inv-pkg-suggest-title">Matching packages</div>
-          <div id="invPkgSuggestList"></div>
-        </div>
       </div>
 
       <div id="invPackagesModeWrap" style="display:none;">
@@ -521,6 +516,11 @@
         <div class="inv-summary-row" style="color:var(--red);"><span>Discount:</span><strong id="invDiscountDisplay">- ₹0.00</strong></div>
         <div class="inv-summary-row"><span>Other charges:</span><strong id="invChargesDisplay">+ ₹0.00</strong></div>
         <div class="inv-summary-row total"><span>GRAND TOTAL:</span><strong id="invGrandTotalDisplay">₹0.00</strong></div>
+      </div>
+
+      <div class="inv-pkg-suggest" id="invPkgSuggestWrap" style="display:none;">
+        <div class="inv-pkg-suggest-title">💡 Could save the customer money</div>
+        <div id="invPkgSuggestList"></div>
       </div>
     </div>
 
