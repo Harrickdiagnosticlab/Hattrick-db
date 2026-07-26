@@ -64,4 +64,3 @@
   ['invDiscountInput','invOtherChargesInput','invAdvancePaidAmountInput'].forEach(id => {
     document.getElementById(id).addEventListener('input', invCalculateTotal);
   });
-  document.getElementById('invB2bNameSelect').addEventListener('change', invCalculateTotal);
