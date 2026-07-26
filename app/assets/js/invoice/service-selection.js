@@ -76,7 +76,8 @@
   }
 
   // Shows which packages the currently-selected individual tests overlap
-  // with, and by how much — e.g. "5/10 matched" — sorted best-match first.
+  // with, and the money the customer would save by switching to that
+  // package instead — e.g. "add 2 more tests, save ₹500".
   function invUpdatePkgSuggestions(){
     const wrap = document.getElementById('invPkgSuggestWrap');
     const list = document.getElementById('invPkgSuggestList');
@@ -88,14 +89,24 @@
     }
 
     const selectedIds = new Set(invSelectedTests.map(t => t.id));
+    const priceById = {};
+    invAllTests.forEach(t => { priceById[t.id] = parseFloat(t.price) || 0; });
+
     const matches = invAllPackages
       .map(pkg => {
         const testIds = pkg.test_ids || [];
         const matchedCount = testIds.filter(id => selectedIds.has(id)).length;
-        return { pkg, matchedCount, total: testIds.length };
+        const individualPrice = testIds.reduce((sum, id) => sum + (priceById[id] || 0), 0);
+        const packagePrice = parseFloat(pkg.rate) || 0;
+        return {
+          pkg, matchedCount, total: testIds.length,
+          remaining: testIds.length - matchedCount,
+          individualPrice, packagePrice,
+          savings: individualPrice - packagePrice
+        };
       })
-      .filter(m => m.matchedCount > 0 && m.total > 0)
-      .sort((a, b) => (b.matchedCount / b.total) - (a.matchedCount / a.total) || b.matchedCount - a.matchedCount);
+      .filter(m => m.matchedCount > 0 && m.total > 0 && m.savings > 0)
+      .sort((a, b) => (b.matchedCount / b.total) - (a.matchedCount / a.total) || b.savings - a.savings);
 
     if (!matches.length){
       wrap.style.display = 'none';
@@ -106,6 +117,10 @@
     list.innerHTML = matches.map(m => {
       const pct = Math.round((m.matchedCount / m.total) * 100);
       const full = m.matchedCount === m.total;
+      const rupee = (n) => `₹${n.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+      const addLine = full
+        ? `All ${m.total} tests already selected.`
+        : `Add ${m.remaining} more test${m.remaining > 1 ? 's' : ''} to complete this package.`;
       return `
         <div class="inv-pkg-suggest-item${full ? ' full-match' : ''}">
           <div class="inv-pkg-suggest-row">
@@ -113,6 +128,12 @@
             <span class="inv-pkg-suggest-count">${m.matchedCount}/${m.total} matched</span>
           </div>
           <div class="inv-pkg-suggest-bar"><div class="inv-pkg-suggest-bar-fill" style="width:${pct}%;"></div></div>
+          <div class="inv-pkg-suggest-note">${addLine}</div>
+          <div class="inv-pkg-suggest-prices">
+            <span>Individually: <s>${rupee(m.individualPrice)}</s></span>
+            <span>As package: <strong>${rupee(m.packagePrice)}</strong></span>
+            <span class="inv-pkg-suggest-savings">Save ${rupee(m.savings)}</span>
+          </div>
         </div>`;
     }).join('');
   }
