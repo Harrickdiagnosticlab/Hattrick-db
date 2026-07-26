@@ -1,4 +1,4 @@
-  // ---------- Save to ledger ----------
+// ---------- Save to ledger ----------
   async function invSaveTransactionToLedger(){
     if (!invValidateInvoiceData()){
       invAlertModal('Cannot save to ledger: select customer and tests first.', 'error');
@@ -13,14 +13,14 @@
       customerId: String(invCurrentSelectedCustomerId),
       patientId: d.customer.id !== 'WALKIN' ? d.customer.id : null,
       customerName: d.customer.name,
-      b2bName: document.getElementById('invB2bNameSelect').value.trim(),
+      b2bName: '',
       customerPaymentMode: document.getElementById('invPaymentMode').value,
       paymentType: d.isFullPayment ? 'Full' : 'Advance/Partial',
       invoiceTotal: d.invoiceTotal,
       grandTotal: d.grandTotal,
       customerPaidAmount: d.amountReceived,
       balanceDue: d.balanceDue,
-      paidAmountToB2B: parseFloat(document.getElementById('invPaidAmountToB2B').value) || 0,
+      paidAmountToB2B: 0,
       discount: d.discount,
       otherCharges: d.charges,
       testsCount: d.selectedTests.length
@@ -37,4 +37,3 @@
       : `Invoice ${ledgerEntry.invoiceNumber} successfully recorded in the Transaction Ledger!`, isUpdate ? 'warning' : 'success');
   }
   document.getElementById('invSaveLedgerBtn').addEventListener('click', invSaveTransactionToLedger);
-
