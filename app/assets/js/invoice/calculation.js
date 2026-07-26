@@ -1,4 +1,4 @@
-  // ---------- Calculation ----------
+// ---------- Calculation ----------
   function invCalculateTotal(){
     // Packages are folded in as ordinary line items (name + price) so every
     // downstream calculation, printed invoice, and ledger/pending record
@@ -57,10 +57,11 @@
       selectedTests: effectiveLineItems, customer: invGetSelectedCustomerData(),
       invoiceDate: document.getElementById('invInvoiceDate').value, invoiceNumber: uniqueInvoiceNumber
     };
+
+    if (typeof invUpdatePkgSuggestions === 'function') invUpdatePkgSuggestions();
   }
 
   ['invDiscountInput','invOtherChargesInput','invAdvancePaidAmountInput'].forEach(id => {
     document.getElementById(id).addEventListener('input', invCalculateTotal);
   });
   document.getElementById('invB2bNameSelect').addEventListener('change', invCalculateTotal);
-
