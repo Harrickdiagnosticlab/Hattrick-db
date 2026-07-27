@@ -665,8 +665,10 @@
           </div>
           <div class="field" style="max-width:200px;"><label>Category</label>
             <select class="field-select" id="expCategory">
-              <option>Rent</option><option>Salary</option><option>Supplies</option>
-              <option>Electricity</option><option>Maintenance</option><option>Other</option>
+              <option>Rent</option><option>Electricity (EB Bill)</option><option>Salary</option>
+              <option>Recharge</option><option>Water Can</option><option>Interest on EMI</option>
+              <option>SRM Settlement</option><option>Home Collection Charge</option>
+              <option>Supplies</option><option>Maintenance</option><option>Misc</option><option>Other</option>
             </select>
           </div>
           <div class="field"><label>Description</label><input id="expDescription" type="text" placeholder="e.g. Reagent stock" /></div>
@@ -916,13 +918,15 @@
     <div class="modal-title">Add Expense</div>
     <div class="msg" id="addExpenseMsg"></div>
     <div class="field"><label>Amount (₹)</label><input id="addExpenseValue" type="number" placeholder="0.00" /></div>
-    <div class="field"><label>Description</label><input id="addExpenseDescription" type="text" placeholder="e.g. Reagent stock" /></div>
     <div class="field"><label>Category</label>
       <select class="field-select" id="addExpenseCategory">
-        <option>Rent</option><option>Salary</option><option>Supplies</option>
-        <option>Electricity</option><option>Maintenance</option><option>Other</option>
+        <option>Rent</option><option>Electricity (EB Bill)</option><option>Salary</option>
+        <option>Recharge</option><option>Water Can</option><option>Interest on EMI</option>
+        <option>SRM Settlement</option><option>Home Collection Charge</option>
+        <option>Supplies</option><option>Maintenance</option><option>Misc</option><option>Other</option>
       </select>
     </div>
+    <div class="field"><label>Description</label><input id="addExpenseDescription" type="text" placeholder="e.g. Reagent stock" /></div>
     <div class="field"><label>Paid from</label>
       <div class="mode-pills" id="addExpenseModePills">
         <button type="button" class="mode-pill selected" data-mode="Cash">Cash</button>
