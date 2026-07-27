@@ -1,4 +1,4 @@
-  /* ---------- Accounts sub-tabs ---------- */
+/* ---------- Accounts sub-tabs ---------- */
   .subtabs{ display:flex; gap:8px; margin-bottom:24px; flex-wrap:wrap; }
   .subtab-btn{
     font-family:var(--font-mono); font-size:11px; text-transform:uppercase; letter-spacing:.05em;
@@ -42,3 +42,28 @@
     color:var(--ink-dim); margin-bottom:4px;
   }
   .ledger-detail-item .dvalue{ font-size:14px; font-weight:600; color:var(--ink); }
+
+  /* ---------- Profit & Loss detail breakdown ---------- */
+  .pnl-main-row{ cursor:pointer; }
+  .pnl-main-row:hover{ background:var(--amber-soft); }
+  .pnl-expand-btn{
+    background:none; border:none; color:var(--ink-dim); font-size:11px; cursor:pointer; margin-left:6px;
+  }
+  .pnl-detail-grid{
+    display:grid; grid-template-columns:1fr 1fr; gap:24px; padding:16px 8px;
+  }
+  .pnl-detail-heading{
+    font-family:var(--font-display); font-size:13px; font-weight:600; color:var(--ink-dim);
+    text-transform:uppercase; letter-spacing:.04em; margin-bottom:10px; padding-bottom:8px;
+    border-bottom:1px solid var(--rule);
+  }
+  .pnl-line-item{
+    display:flex; justify-content:space-between; font-size:13px; padding:5px 0; color:var(--ink);
+  }
+  .pnl-line-empty{ color:var(--ink-dim); font-style:italic; }
+  .pnl-line-total{
+    font-weight:700; border-top:1px solid var(--rule); margin-top:6px; padding-top:8px;
+  }
+  @media (max-width: 640px){
+    .pnl-detail-grid{ grid-template-columns:1fr; gap:16px; }
+  }
