@@ -192,6 +192,7 @@
     <div class="subtabs">
       <button class="subtab-btn active" data-subtab="admin-overview">Overview</button>
       <button class="subtab-btn" data-subtab="admin-ledger">Ledger</button>
+      <button class="subtab-btn" data-subtab="admin-pnl">Profit &amp; Loss</button>
     </div>
 
     <div class="subtab-panel active" id="subtab-admin-overview">
@@ -309,6 +310,29 @@
             </tr></thead>
             <tbody id="ledgerAllBody"></tbody>
             <tfoot id="ledgerFooter"></tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="subtab-panel" id="subtab-admin-pnl">
+      <div class="panel">
+        <div class="panel-header-row">
+          <div class="panel-title" style="margin-bottom:0;">Profit &amp; Loss — by month</div>
+        </div>
+        <p class="hint" style="margin-bottom:16px;">
+          Sales = invoiced amount (Grand Total). Cost of Goods Sold = expenses logged under "SRM Settlement".
+          Gross Profit = Sales − COGS. Net Profit = Gross Profit − all other expenses. Outstanding = unpaid balance from that month's invoices.
+        </p>
+        <div class="table-wrap">
+          <table class="cust-table" id="pnlTable">
+            <thead>
+              <tr>
+                <th>Month</th><th>Sales</th><th>COGS</th><th>Gross Profit</th>
+                <th>Expenses</th><th>Net Profit</th><th>Outstanding</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="pnlTableBody"></tbody>
           </table>
         </div>
       </div>
@@ -987,6 +1011,7 @@
 <script src="assets/js/accounts/employee-daily-closing.js"></script>
 <script src="assets/js/accounts/admin-overview.js"></script>
 <script src="assets/js/accounts/admin-full-ledger.js"></script>
+<script src="assets/js/accounts/profit-loss.js"></script>
 <script src="assets/js/ui/modal-helpers.js"></script>
 <script src="assets/js/ui/confirm-modal.js"></script>
 <script src="assets/js/accounts/add-amount.js"></script>
