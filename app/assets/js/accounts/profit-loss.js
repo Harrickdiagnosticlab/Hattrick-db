@@ -1,20 +1,25 @@
-// ---------- Admin: Profit & Loss (auto-grouped by every month present in the data) ----------
-  const PNL_MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+// ---------- Admin: Profit & Loss — Excel-style grid (months as columns) ----------
+  const PNL_MONTH_NAMES_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const PNL_COGS_CATEGORIES = ['SRM Settlement', 'Home Collection Charge'];
+  const PNL_CATEGORY_ORDER = ['Rent','Electricity (EB Bill)','Salary','Recharge','Water Can','Interest on EMI',
+    'SRM Settlement','Home Collection Charge','Supplies','Maintenance','Misc','Other'];
 
   function pnlFormatMonth(key){
     const [y, mo] = key.split('-');
-    return `${PNL_MONTH_NAMES[parseInt(mo, 10) - 1]} ${y}`;
+    return `${PNL_MONTH_NAMES_SHORT[parseInt(mo, 10) - 1]}-${y.slice(2)}`;
   }
 
-  function pnlSlug(str){
-    return str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  function pnlSortCategories(cats){
+    const known = PNL_CATEGORY_ORDER.filter(c => cats.includes(c));
+    const unknown = cats.filter(c => !PNL_CATEGORY_ORDER.includes(c)).sort();
+    return [...known, ...unknown];
   }
 
   async function pnlLoad(){
+    const thead = document.getElementById('pnlTableHead');
     const tbody = document.getElementById('pnlTableBody');
     if (!tbody) return;
-    tbody.innerHTML = '<tr><td colspan="8" class="empty">Loading…</td></tr>';
+    tbody.innerHTML = '<tr><td class="empty">Loading…</td></tr>';
 
     const [{ data: invRows }, { data: expRows }] = await Promise.all([
       sb.from('ledger').select('invoiceDate, grandTotal, balanceDue').limit(5000),
@@ -45,69 +50,61 @@
       bucket[cat] = (bucket[cat] || 0) + amt;
     });
 
-    const keys = Object.keys(months).sort().reverse();
+    const monthKeys = Object.keys(months).sort(); // oldest → newest, left to right, like the sheet
 
-    if (keys.length === 0){
-      tbody.innerHTML = '<tr><td colspan="8" class="empty">No data yet — add some invoices or expenses first.</td></tr>';
+    if (monthKeys.length === 0){
+      thead.innerHTML = '<tr><th>Income</th></tr>';
+      tbody.innerHTML = '<tr><td class="empty">No data yet — add some invoices or expenses first.</td></tr>';
       return;
     }
 
-    tbody.innerHTML = keys.map(key => {
-      const m = months[key];
-      const cogsTotal = Object.values(m.cogsByCategory).reduce((a, b) => a + b, 0);
-      const expTotal = Object.values(m.expByCategory).reduce((a, b) => a + b, 0);
-      const grossProfit = m.sales - cogsTotal;
-      const netProfit = grossProfit - expTotal;
-      const rowId = 'pnl-detail-' + pnlSlug(key);
-
-      const cogsRows = Object.keys(m.cogsByCategory).sort().map(cat =>
-        `<div class="pnl-line-item"><span>${escapeHtml(cat)}</span><span>${acctFmt(m.cogsByCategory[cat])}</span></div>`
-      ).join('') || '<div class="pnl-line-item pnl-line-empty"><span>None this month</span><span></span></div>';
-
-      const expRowsHtml = Object.keys(m.expByCategory).sort().map(cat =>
-        `<div class="pnl-line-item"><span>${escapeHtml(cat)}</span><span>${acctFmt(m.expByCategory[cat])}</span></div>`
-      ).join('') || '<div class="pnl-line-item pnl-line-empty"><span>None this month</span><span></span></div>';
-
-      const mainRow = `
-        <tr class="pnl-main-row" data-target="${rowId}">
-          <td style="font-weight:600;">${pnlFormatMonth(key)} <button class="pnl-expand-btn" type="button">▼</button></td>
-          <td>${acctFmt(m.sales)}</td>
-          <td>${acctFmt(cogsTotal)}</td>
-          <td>${acctFmt(grossProfit)}</td>
-          <td>${acctFmt(expTotal)}</td>
-          <td style="font-weight:700; color:${netProfit >= 0 ? 'var(--moss)' : 'var(--red)'};">${acctFmt(netProfit)}</td>
-          <td style="color:var(--red);">${acctFmt(m.outstanding)}</td>
-          <td></td>
-        </tr>`;
-
-      const detailRow = `
-        <tr id="${rowId}" class="pnl-detail-row" style="display:none;">
-          <td colspan="8">
-            <div class="pnl-detail-grid">
-              <div class="pnl-detail-col">
-                <div class="pnl-detail-heading">Cost of Goods Sold</div>
-                ${cogsRows}
-                <div class="pnl-line-item pnl-line-total"><span>Total COGS</span><span>${acctFmt(cogsTotal)}</span></div>
-              </div>
-              <div class="pnl-detail-col">
-                <div class="pnl-detail-heading">Expenses</div>
-                ${expRowsHtml}
-                <div class="pnl-line-item pnl-line-total"><span>Total Expenses</span><span>${acctFmt(expTotal)}</span></div>
-              </div>
-            </div>
-          </td>
-        </tr>`;
-
-      return mainRow + detailRow;
-    }).join('');
-
-    tbody.querySelectorAll('.pnl-main-row').forEach(row => {
-      row.addEventListener('click', () => {
-        const detail = document.getElementById(row.dataset.target);
-        const btn = row.querySelector('.pnl-expand-btn');
-        const show = detail.style.display === 'none';
-        detail.style.display = show ? 'table-row' : 'none';
-        btn.textContent = show ? '▲' : '▼';
-      });
+    // Only show category rows that actually have data in at least one shown month.
+    const allCogsCats = new Set();
+    const allExpCats = new Set();
+    monthKeys.forEach(k => {
+      Object.keys(months[k].cogsByCategory).forEach(c => allCogsCats.add(c));
+      Object.keys(months[k].expByCategory).forEach(c => allExpCats.add(c));
     });
+    const cogsCats = pnlSortCategories([...allCogsCats]);
+    const expCats = pnlSortCategories([...allExpCats]);
+
+    // ---------- Header ----------
+    thead.innerHTML = `<tr><th>Income</th>${monthKeys.map(k => `<th>${pnlFormatMonth(k)}</th>`).join('')}</tr>`;
+
+    // ---------- Body ----------
+    const rupee = (n) => n ? acctFmt(n) : '';
+    const cell = (key, fn) => monthKeys.map(k => `<td>${rupee(fn(months[k]))}</td>`).join('');
+
+    const rows = [];
+
+    rows.push(`<tr class="pnl-row-highlight"><td>Sales</td>${cell(null, m => m.sales)}</tr>`);
+
+    rows.push(`<tr class="pnl-row-highlight"><td>Cost of Goods Sold</td>${cell(null, m => Object.values(m.cogsByCategory).reduce((a,b)=>a+b,0))}</tr>`);
+    cogsCats.forEach(cat => {
+      rows.push(`<tr class="pnl-row-sub"><td>${escapeHtml(cat)}</td>${cell(null, m => m.cogsByCategory[cat] || 0)}</tr>`);
+    });
+
+    rows.push(`<tr class="pnl-row-highlight pnl-row-bold"><td>Gross Profit (Sales − COGS)</td>${cell(null, m => {
+      const cogsTotal = Object.values(m.cogsByCategory).reduce((a,b)=>a+b,0);
+      return m.sales - cogsTotal;
+    })}</tr>`);
+
+    rows.push(`<tr class="pnl-row-section"><td>Expenses</td>${monthKeys.map(() => '<td></td>').join('')}</tr>`);
+    expCats.forEach(cat => {
+      rows.push(`<tr class="pnl-row-sub"><td>${escapeHtml(cat)}</td>${cell(null, m => m.expByCategory[cat] || 0)}</tr>`);
+    });
+
+    rows.push(`<tr class="pnl-row-danger pnl-row-bold"><td>Total Expenses</td>${cell(null, m => Object.values(m.expByCategory).reduce((a,b)=>a+b,0))}</tr>`);
+
+    rows.push(`<tr class="pnl-row-net pnl-row-bold"><td>Net Profit</td>${monthKeys.map(k => {
+      const m = months[k];
+      const cogsTotal = Object.values(m.cogsByCategory).reduce((a,b)=>a+b,0);
+      const expTotal = Object.values(m.expByCategory).reduce((a,b)=>a+b,0);
+      const net = m.sales - cogsTotal - expTotal;
+      return `<td style="color:${net >= 0 ? 'var(--moss)' : 'var(--red)'}; font-weight:700;">${acctFmt(net)}</td>`;
+    }).join('')}</tr>`);
+
+    rows.push(`<tr><td>Outstanding</td>${cell(null, m => m.outstanding)}</tr>`);
+
+    tbody.innerHTML = rows.join('');
   }
