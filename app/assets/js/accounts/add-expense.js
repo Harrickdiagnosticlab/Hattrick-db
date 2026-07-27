@@ -1,13 +1,51 @@
-// ---------- Add Expense ----------
+// ---------- Add / Edit Expense (shared modal) ----------
+  let editingExpenseId = null;
+
+  const FIXED_EXPENSE_CATEGORIES = ['Rent','Electricity (EB Bill)','Salary','Recharge','Water Can',
+    'Interest on EMI','SRM Settlement','Home Collection Charge','Supplies','Maintenance','Misc','Other'];
+
+  function expSelectModePill(mode){
+    const pills = document.querySelectorAll('#addExpenseModePills .mode-pill');
+    pills.forEach(p => p.classList.toggle('selected', p.dataset.mode === mode));
+  }
+
   document.getElementById('ledgerAddExpenseBtn').addEventListener('click', () => {
+    editingExpenseId = null;
+    document.querySelector('#addExpenseModal .modal-title').textContent = 'Add Expense';
     document.getElementById('addExpenseValue').value = '';
     document.getElementById('addExpenseDescription').value = '';
     document.getElementById('addExpenseCategory').value = 'Other';
     document.getElementById('addExpenseNewCategory').value = '';
     document.getElementById('addExpenseNewCategoryWrap').style.display = 'none';
+    expSelectModePill('Cash');
     clearMsg(document.getElementById('addExpenseMsg'));
     openModal('addExpenseModal');
   });
+
+  // Called from admin-full-ledger.js when "Edit" is clicked on an existing expense row.
+  function openExpenseEditModal(entry){
+    editingExpenseId = entry._expenseId;
+    document.querySelector('#addExpenseModal .modal-title').textContent = 'Edit Expense';
+    document.getElementById('addExpenseValue').value = entry.paid || 0;
+    document.getElementById('addExpenseDescription').value = entry.customer || '';
+
+    const category = entry.category || 'Other';
+    const catSelect = document.getElementById('addExpenseCategory');
+    if (FIXED_EXPENSE_CATEGORIES.includes(category)){
+      catSelect.value = category;
+      document.getElementById('addExpenseNewCategoryWrap').style.display = 'none';
+      document.getElementById('addExpenseNewCategory').value = '';
+    } else {
+      catSelect.value = '__new__';
+      document.getElementById('addExpenseNewCategoryWrap').style.display = 'block';
+      document.getElementById('addExpenseNewCategory').value = category;
+    }
+
+    expSelectModePill(entry.mode || 'Cash');
+    clearMsg(document.getElementById('addExpenseMsg'));
+    openModal('addExpenseModal');
+  }
+
   document.getElementById('addExpenseCancelBtn').addEventListener('click', () => closeModal('addExpenseModal'));
 
   document.getElementById('addExpenseCategory').addEventListener('change', (e) => {
@@ -37,11 +75,19 @@
       return;
     }
 
-    const { error } = await sb.from('expenses').insert({
-      date: acctToday(), category, description, amount, source: mode, added_by: 'admin'
-    });
+    let error;
+    if (editingExpenseId){
+      ({ error } = await sb.from('expenses').update({
+        category, description, amount, source: mode
+      }).eq('id', editingExpenseId));
+    } else {
+      ({ error } = await sb.from('expenses').insert({
+        date: acctToday(), category, description, amount, source: mode, added_by: 'admin'
+      }));
+    }
     if (error){ showMsg(msgEl, 'Could not save: ' + error.message, 'err'); return; }
 
+    editingExpenseId = null;
     closeModal('addExpenseModal');
     await acctLoadLedgerAll();
     await acctLoadBalances();
