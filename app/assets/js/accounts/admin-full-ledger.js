@@ -43,7 +43,7 @@
     }));
     const expEntries = (expRows || []).map(r => ({
       type: 'EXPENSE', date: r.date, invoiceNumber: r.import_ref || ('EXP-' + r.id.slice(0, 8)),
-      customer: r.description, patientId: '', mode: r.source,
+      customer: r.description, patientId: '', mode: r.source, category: r.category,
       total: 0, discount: 0, paid: r.amount,
       b2bName: '', b2bPaid: 0, timestamp: r.timestamp, _expenseId: r.id, clearedAmt: 0
     }));
@@ -165,7 +165,10 @@
         </td>
         <td style="font-weight:600;">${acctFmt(m.holding)}</td>
         <td><button class="ledger-expand-btn" data-target="${rowId}" type="button">▼</button></td>
-        <td>${canRemove ? '<button class="emp-del ledger-remove">Remove</button>' : ''}</td>
+        <td>
+          ${r.type === 'EXPENSE' ? `<button class="btn ghost btn-sm ledger-edit-expense" data-exp-id="${r._expenseId}">Edit</button>` : ''}
+          ${canRemove ? '<button class="emp-del ledger-remove">Remove</button>' : ''}
+        </td>
       </tr>`;
 
       const detailRow = `
@@ -228,6 +231,14 @@
         const show = target.style.display === 'none';
         target.style.display = show ? 'table-row' : 'none';
         btn.textContent = show ? '▲' : '▼';
+      });
+    });
+
+    // Edit (EXPENSE only)
+    body.querySelectorAll('.ledger-edit-expense').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const entry = ledgerAllRows.find(r => r._expenseId === btn.dataset.expId);
+        if (entry) openExpenseEditModal(entry);
       });
     });
 
