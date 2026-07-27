@@ -38,6 +38,10 @@
       showMsg(document.getElementById('expMsg'), 'Enter a valid amount.', 'err');
       return;
     }
+    if (category === 'Other' && !description){
+      showMsg(document.getElementById('expMsg'), 'Description is required when category is "Other".', 'err');
+      return;
+    }
 
     const { error } = await sb.from('expenses').insert({ date, category, description, amount, source, added_by: 'employee' });
     if (error){
