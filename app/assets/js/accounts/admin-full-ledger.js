@@ -37,8 +37,8 @@
     const invEntries = (invRows || []).map(r => ({
       type: r.type || 'INVOICE', date: r.invoiceDate, invoiceNumber: r.invoiceNumber,
       customer: r.customerName, patientId: r.patientId || '', mode: r.customerPaymentMode,
-      total: r.invoiceTotal, discount: r.discount, paid: r.customerPaidAmount,
-      b2bName: r.b2bName, b2bPaid: r.paidAmountToB2B, timestamp: r.timestamp,
+      total: r.invoiceTotal, discount: r.discount, otherCharges: r.otherCharges, paid: r.customerPaidAmount,
+      b2bName: r.b2bName, b2bPaid: r.paidAmountToB2B, timestamp: r.timestamp, _ledgerId: r.id,
       clearedAmt: (r.type || 'INVOICE') === 'INVOICE' ? acctClearedTotalFor(r.invoiceNumber) : 0
     }));
     const expEntries = (expRows || []).map(r => ({
@@ -51,7 +51,7 @@
       type: 'PAYMENT', date: c.clearedDate, invoiceNumber: c.invoiceNumber,
       customer: c.customerName + ' (payment against pending)', patientId: c.patientId || '', mode: c.paymentMode,
       total: 0, discount: 0, paid: c.amount,
-      b2bName: '', b2bPaid: 0, timestamp: c.timestamp, clearedAmt: 0
+      b2bName: '', b2bPaid: 0, timestamp: c.timestamp, _clearanceId: c.id, clearedAmt: 0
     }));
 
     ledgerAllRows = [...invEntries, ...expEntries, ...paymentEntries].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
@@ -148,12 +148,11 @@
       else { sums.bankCredit += m.credit; sums.bankDebit += m.debit; }
 
       const typeColor = r.type === 'EXPENSE' ? 'var(--red)' : (r.type === 'AMOUNT_IN' ? 'var(--amber)' : (r.type === 'PAYMENT' ? '#5c8ba8' : 'var(--moss)'));
-      const canRemove = r.type === 'EXPENSE' || r.type === 'AMOUNT_IN';
       const canCollect = r.type === 'INVOICE' && m.pending > 0.009;
       const rowId = 'ledger-row-' + idx;
 
       const mainRow = `
-      <tr data-invoice="${escapeHtml(r.invoiceNumber)}" data-pending="${m.pending}" data-exp-id="${r._expenseId || ''}" data-row-type="${r.type}">
+      <tr data-invoice="${escapeHtml(r.invoiceNumber)}" data-pending="${m.pending}" data-exp-id="${r._expenseId || ''}" data-clearance-id="${r._clearanceId || ''}" data-ledger-id="${r._ledgerId || ''}" data-row-type="${r.type}">
         <td class="cust-meta" style="color:${typeColor};">${r.type}</td>
         <td class="cust-meta">${formatDMY(r.date)}</td>
         <td class="cust-meta">${escapeHtml(r.invoiceNumber)}</td>
@@ -166,8 +165,8 @@
         <td style="font-weight:600;">${acctFmt(m.holding)}</td>
         <td><button class="ledger-expand-btn" data-target="${rowId}" type="button">▼</button></td>
         <td>
-          ${r.type === 'EXPENSE' ? `<button class="btn ghost btn-sm ledger-edit-expense" data-exp-id="${r._expenseId}">Edit</button>` : ''}
-          ${canRemove ? '<button class="emp-del ledger-remove">Remove</button>' : ''}
+          <button class="btn ghost btn-sm ledger-edit-row" data-row-idx="${idx}">Edit</button>
+          <button class="emp-del ledger-remove">Remove</button>
         </td>
       </tr>`;
 
@@ -234,23 +233,29 @@
       });
     });
 
-    // Edit (EXPENSE only)
-    body.querySelectorAll('.ledger-edit-expense').forEach(btn => {
+    // Edit (routes to the right modal based on row type)
+    body.querySelectorAll('.ledger-edit-row').forEach(btn => {
       btn.addEventListener('click', () => {
-        const entry = ledgerAllRows.find(r => r._expenseId === btn.dataset.expId);
-        if (entry) openExpenseEditModal(entry);
+        const entry = rows[parseInt(btn.dataset.rowIdx, 10)];
+        if (!entry) return;
+        if (entry.type === 'EXPENSE') openExpenseEditModal(entry);
+        else if (entry.type === 'PAYMENT') openPaymentEditModal(entry);
+        else openInvoiceEditModal(entry);
       });
     });
 
-    // Remove (AMOUNT_IN / EXPENSE only)
+    // Remove — each row type lives in a different table, so delete from the right one.
     body.querySelectorAll('.ledger-remove').forEach(btn => {
       btn.addEventListener('click', () => {
         const tr = btn.closest('tr');
-        showConfirm('Remove this entry permanently?', async () => {
-          if (tr.dataset.rowType === 'EXPENSE'){
+        const rowType = tr.dataset.rowType;
+        showConfirm('Remove this entry permanently? This cannot be undone.', async () => {
+          if (rowType === 'EXPENSE'){
             await sb.from('expenses').delete().eq('id', tr.dataset.expId);
+          } else if (rowType === 'PAYMENT'){
+            await sb.from('payment_clearances').delete().eq('id', tr.dataset.clearanceId);
           } else {
-            await sb.from('ledger').delete().eq('invoiceNumber', tr.dataset.invoice);
+            await sb.from('ledger').delete().eq('id', tr.dataset.ledgerId);
           }
           await acctLoadLedgerAll();
           await acctLoadBalances();
