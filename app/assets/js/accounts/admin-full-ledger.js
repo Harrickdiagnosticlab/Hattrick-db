@@ -1,4 +1,4 @@
-  // ---------- Admin: Full Ledger view (invoices + expenses + manual entries) ----------
+// ---------- Admin: Full Ledger view (invoices + expenses + manual entries) ----------
   let ledgerAllRows = [];
   let ledgerOpeningCashVal = 0;
   let ledgerOpeningBankVal = 0;
@@ -175,8 +175,6 @@
             <div class="ledger-detail-item"><div class="dlabel">Patient ID</div><div class="dvalue">${escapeHtml(r.patientId || '—')}</div></div>
             <div class="ledger-detail-item"><div class="dlabel">Total</div><div class="dvalue">${acctFmt(r.total)}</div></div>
             <div class="ledger-detail-item"><div class="dlabel">Discount</div><div class="dvalue">${acctFmt(r.discount)}</div></div>
-            <div class="ledger-detail-item"><div class="dlabel">B2B Name</div><div class="dvalue">${escapeHtml(r.b2bName || '—')}</div></div>
-            <div class="ledger-detail-item"><div class="dlabel">B2B Paid</div><div class="dvalue">${acctFmt(r.b2bPaid)}</div></div>
             <div class="ledger-detail-item"><div class="dlabel">Expense</div><div class="dvalue">${acctFmt(m.expenseAmt)}</div></div>
             <div class="ledger-detail-item"><div class="dlabel">Credit</div><div class="dvalue" style="color:var(--moss);">${acctFmt(m.credit)}</div></div>
             <div class="ledger-detail-item"><div class="dlabel">Debit</div><div class="dvalue" style="color:var(--red);">${acctFmt(m.debit)}</div></div>
@@ -202,7 +200,6 @@
           <div class="ledger-detail-grid">
             <div class="ledger-detail-item"><div class="dlabel">Total</div><div class="dvalue">${acctFmt(sums.total)}</div></div>
             <div class="ledger-detail-item"><div class="dlabel">Discount</div><div class="dvalue">${acctFmt(sums.discount)}</div></div>
-            <div class="ledger-detail-item"><div class="dlabel">B2B Paid</div><div class="dvalue">${acctFmt(sums.b2bPaid)}</div></div>
             <div class="ledger-detail-item"><div class="dlabel">Expense</div><div class="dvalue">${acctFmt(sums.expense)}</div></div>
             <div class="ledger-detail-item"><div class="dlabel">Credit</div><div class="dvalue" style="color:var(--moss);">${acctFmt(sums.credit)}</div></div>
             <div class="ledger-detail-item"><div class="dlabel">Debit</div><div class="dvalue" style="color:var(--red);">${acctFmt(sums.debit)}</div></div>
@@ -336,4 +333,3 @@
     await acctLoadBalances();
     await loadDashboardAccountsCard();
   });
-
