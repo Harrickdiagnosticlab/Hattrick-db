@@ -971,6 +971,51 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="editInvoiceModal">
+  <div class="modal-card">
+    <div class="modal-title">Edit Invoice Entry</div>
+    <div class="msg" id="editInvoiceMsg"></div>
+    <div class="field"><label>Customer name</label><input id="editInvCustomer" type="text" /></div>
+    <div class="field"><label>Discount (₹)</label><input id="editInvDiscount" type="number" /></div>
+    <div class="field"><label>Other charges (₹)</label><input id="editInvOtherCharges" type="number" /></div>
+    <div class="field"><label>Amount paid by customer (₹)</label><input id="editInvPaidAmount" type="number" /></div>
+    <div class="field"><label>Payment mode</label>
+      <div class="mode-pills" id="editInvModePills">
+        <button type="button" class="mode-pill selected" data-mode="Cash">Cash</button>
+        <button type="button" class="mode-pill" data-mode="UPI">UPI</button>
+        <button type="button" class="mode-pill" data-mode="Card">Card</button>
+        <button type="button" class="mode-pill" data-mode="Bank">Bank</button>
+      </div>
+    </div>
+    <p class="hint">Test list and invoice total aren't editable here — only correct customer name, discount, other charges, paid amount and mode. Grand total and balance due recalculate automatically.</p>
+    <div class="modal-actions">
+      <button class="btn ghost" id="editInvoiceCancelBtn" type="button">Cancel</button>
+      <button class="btn moss" id="editInvoiceSaveBtn" type="button">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="editPaymentModal">
+  <div class="modal-card">
+    <div class="modal-title">Edit Payment Entry</div>
+    <div class="msg" id="editPaymentMsg"></div>
+    <div class="field"><label>Amount (₹)</label><input id="editPaymentAmount" type="number" /></div>
+    <div class="field"><label>Date</label><input id="editPaymentDate" type="date" /></div>
+    <div class="field"><label>Payment mode</label>
+      <div class="mode-pills" id="editPaymentModePills">
+        <button type="button" class="mode-pill selected" data-mode="Cash">Cash</button>
+        <button type="button" class="mode-pill" data-mode="UPI">UPI</button>
+        <button type="button" class="mode-pill" data-mode="Card">Card</button>
+        <button type="button" class="mode-pill" data-mode="Bank">Bank</button>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn ghost" id="editPaymentCancelBtn" type="button">Cancel</button>
+      <button class="btn moss" id="editPaymentSaveBtn" type="button">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- Generic confirm modal -->
 <div class="modal-overlay" id="confirmModal">
   <div class="modal-card">
@@ -1016,6 +1061,7 @@
 <script src="assets/js/ui/confirm-modal.js"></script>
 <script src="assets/js/accounts/add-amount.js"></script>
 <script src="assets/js/accounts/add-expense.js"></script>
+<script src="assets/js/accounts/ledger-edit.js"></script>
 <script src="assets/js/accounts/csv-export.js"></script>
 <script src="assets/js/accounts/expenses.js"></script>
 <script src="assets/js/accounts/closing-check.js"></script>
