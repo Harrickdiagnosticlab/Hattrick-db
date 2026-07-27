@@ -67,3 +67,18 @@
   @media (max-width: 640px){
     .pnl-detail-grid{ grid-template-columns:1fr; gap:16px; }
   }
+
+  /* ---------- Profit & Loss grid (Excel-style: months as columns) ---------- */
+  .pnl-grid{ min-width:600px; }
+  .pnl-grid thead th{
+    background:var(--amber-soft); color:var(--ink); font-weight:700;
+  }
+  .pnl-grid thead th:first-child{ text-align:left; }
+  .pnl-grid tbody td:not(:first-child){ text-align:right; }
+  .pnl-row-highlight td{ background:#eaf3e9; font-weight:600; }
+  .pnl-row-sub td:first-child{ padding-left:26px; color:var(--ink-dim); }
+  .pnl-row-section td{ font-weight:700; color:var(--ink); padding-top:14px; }
+  .pnl-row-danger td{ background:#fbe4e0; }
+  .pnl-row-net td{ background:var(--amber-soft); }
+  .pnl-row-bold td{ font-weight:700; }
+  #pnlTable.pnl-grid{ table-layout:auto; }
