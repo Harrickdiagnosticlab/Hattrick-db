@@ -19,6 +19,10 @@
       showMsg(msgEl, 'Enter a valid amount.', 'err');
       return;
     }
+    if (category === 'Other' && !description){
+      showMsg(msgEl, 'Description is required when category is "Other".', 'err');
+      return;
+    }
 
     const { error } = await sb.from('expenses').insert({
       date: acctToday(), category, description, amount, source: mode, added_by: 'admin'
