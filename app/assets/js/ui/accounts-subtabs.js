@@ -1,4 +1,4 @@
-  // ---------- Accounts sub-tabs ----------
+// ---------- Accounts sub-tabs ----------
   document.querySelectorAll('.subtab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const container = btn.closest('.tab-panel');
@@ -7,7 +7,7 @@
       btn.classList.add('active');
       container.querySelector('#subtab-' + btn.dataset.subtab).classList.add('active');
       if (btn.dataset.subtab === 'admin-ledger'){ acctLoadLedgerAll(); }
+      if (btn.dataset.subtab === 'admin-pnl'){ pnlLoad(); }
       if (btn.dataset.subtab === 'svc-packages'){ pkgLoadServiceSelector(); pkgLoadList(); }
     });
   });
-
