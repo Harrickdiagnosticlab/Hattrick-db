@@ -54,11 +54,17 @@
   const ledgerImportFile = document.getElementById('ledgerImportFile');
   ledgerImportBtn.addEventListener('click', () => ledgerImportFile.click());
 
-  // Expects a CSV with the ledger table's own raw column names (matching a
-  // Supabase table export), e.g.:
-  // invoiceNumber,invoiceDate,customerId,customerName,b2bName,customerPaymentMode,
-  // paymentType,invoiceTotal,grandTotal,customerPaidAmount,balanceDue,
-  // paidAmountToB2B,discount,otherCharges,testsCount,timestamp,type,patientId
+  // Converts the exported "DD/MM/YYYY" date format back to "YYYY-MM-DD".
+  function pnlParseDMY(dmy){
+    const parts = String(dmy || '').split('/');
+    if (parts.length !== 3) return null;
+    const [d, m, y] = parts;
+    return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+  }
+
+  // Expects the SAME CSV produced by "Export CSV" above:
+  // Type,Date,Invoice,Customer/Reason,Patient ID,Mode,Total,Discount,Received,
+  // Pending,B2B,B2B Paid,Expense,Credit,Debit,Holding
   ledgerImportFile.addEventListener('change', async () => {
     const file = ledgerImportFile.files[0];
     if (!file) return;
@@ -76,36 +82,67 @@
         ledgerImportBtn.disabled = false;
         return;
       }
-      if (!records[0].invoiceNumber){
-        showMsg(msgEl, 'This CSV doesn\u2019t look like a ledger backup — missing an "invoiceNumber" column.', 'err');
+      if (!records[0].Type || !records[0].Invoice){
+        showMsg(msgEl, 'This doesn\u2019t look like a ledger export CSV — expected "Type" and "Invoice" columns.', 'err');
         ledgerImportFile.value = '';
         ledgerImportBtn.disabled = false;
         return;
       }
 
       const num = (v) => v === '' || v === undefined ? 0 : parseFloat(v) || 0;
-      const ledgerRecords = records.map(t => ({
-        invoiceNumber: t.invoiceNumber, invoiceDate: t.invoiceDate,
-        customerId: t.customerId || null, patientId: t.patientId || null,
-        customerName: t.customerName, b2bName: t.b2bName || '',
-        customerPaymentMode: t.customerPaymentMode, paymentType: t.paymentType,
-        invoiceTotal: num(t.invoiceTotal), grandTotal: num(t.grandTotal),
-        customerPaidAmount: num(t.customerPaidAmount), balanceDue: num(t.balanceDue),
-        paidAmountToB2B: num(t.paidAmountToB2B), discount: num(t.discount),
-        otherCharges: num(t.otherCharges), testsCount: num(t.testsCount),
-        timestamp: t.timestamp || new Date().toISOString(), type: t.type || 'INVOICE'
-      })).filter(r => r.invoiceNumber);
 
-      const { error } = await sb.from('ledger').upsert(ledgerRecords, { onConflict: 'invoiceNumber' });
+      const invoiceRecords = records
+        .filter(t => t.Type === 'INVOICE' || t.Type === 'AMOUNT_IN')
+        .map(t => {
+          const invoiceTotal = num(t.Total);
+          const discount = num(t.Discount);
+          const paid = num(t.Received);
+          const grandTotal = Math.max(0, invoiceTotal - discount);
+          return {
+            invoiceNumber: t.Invoice, invoiceDate: pnlParseDMY(t.Date),
+            customerName: t['Customer/Reason'], patientId: t['Patient ID'] || null,
+            customerPaymentMode: t.Mode, paymentType: paid >= grandTotal ? 'Full' : 'Advance/Partial',
+            invoiceTotal, grandTotal, customerPaidAmount: paid,
+            balanceDue: Math.max(0, grandTotal - paid),
+            b2bName: t.B2B || '', paidAmountToB2B: num(t['B2B Paid']),
+            discount, otherCharges: 0, testsCount: 0,
+            timestamp: new Date().toISOString(), type: t.Type
+          };
+        })
+        .filter(r => r.invoiceNumber && r.invoiceDate);
 
-      if (error){
-        showMsg(msgEl, 'Import finished with errors: ' + error.message, 'err');
+      const expenseRecords = records
+        .filter(t => t.Type === 'EXPENSE')
+        .map(t => ({
+          date: pnlParseDMY(t.Date), category: 'Imported', description: t['Customer/Reason'] || '',
+          amount: num(t.Expense), source: t.Mode || 'Cash', added_by: 'admin',
+          timestamp: new Date().toISOString()
+        }))
+        .filter(r => r.date && r.amount > 0);
+
+      const skippedPayments = records.filter(t => t.Type === 'PAYMENT').length;
+
+      let ledgerError = null, expError = null;
+      if (invoiceRecords.length){
+        const { error } = await sb.from('ledger').upsert(invoiceRecords, { onConflict: 'invoiceNumber' });
+        ledgerError = error;
+      }
+      if (expenseRecords.length){
+        const { error } = await sb.from('expenses').insert(expenseRecords);
+        expError = error;
+      }
+
+      if (ledgerError || expError){
+        showMsg(msgEl, 'Import finished with errors: ' + [ledgerError, expError].filter(Boolean).map(e => e.message).join(' | '), 'err');
       } else {
-        showMsg(msgEl, `Imported/updated ${ledgerRecords.length} ledger record(s).`, 'ok');
+        let summary = `Imported ${invoiceRecords.length} invoice(s) and ${expenseRecords.length} expense(s) (added as new).`;
+        if (skippedPayments) summary += ` Skipped ${skippedPayments} payment-collection row(s) — those aren't re-importable.`;
+        showMsg(msgEl, summary, 'ok');
       }
 
       await acctLoadLedgerAll();
       await acctLoadBalances();
+      await expLoad();
     } catch(e){
       showMsg(msgEl, 'Could not read that CSV: ' + e.message, 'err');
     }
