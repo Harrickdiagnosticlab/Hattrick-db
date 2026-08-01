@@ -718,14 +718,14 @@
 </div>
 
 <div id="toolsSharedRoot" class="tools-shared-root">
-  <div id="toolsLoadingMsg" class="panel" style="text-align:center; padding:40px;">Loading tool…</div>
-
-  <div id="toolsContentWrap" class="tools-hide">
   <div class="tools-subnav">
     <button class="tools-subtab-btn active" data-tool="header-changer">Report's Header UpdateTool</button>
+    <button class="tools-subtab-btn" data-tool="data-backup">Data Backup</button>
   </div>
 
   <div class="tools-subpanel active" id="toolsSubpanel-header-changer">
+    <div id="toolsLoadingMsg-header-changer" class="panel" style="text-align:center; padding:40px;">Loading tool…</div>
+    <div id="toolsContentWrap-header-changer" class="tools-hide">
     <div class="tool-header-changer">
 <div class="wrap">
 
@@ -904,8 +904,23 @@
   <footer>Runs entirely in your browser — the PDF and logos never leave your computer.</footer>
 </div>
 
+    </div>
   </div>
   </div>
+
+  <div class="tools-subpanel" id="toolsSubpanel-data-backup">
+    <div id="toolsLoadingMsg-data-backup" class="panel tools-hide" style="text-align:center; padding:40px;">Loading tool…</div>
+    <div id="toolsContentWrap-data-backup">
+      <div class="panel">
+        <div class="panel-title">Full data backup</div>
+        <p class="hint" style="margin-bottom:16px;">
+          Downloads every table (customers, employees, services, packages, ledger, expenses, inventory, check-ins) as CSV files
+          bundled into a single ZIP. Admin login credentials are never included.
+        </p>
+        <div class="msg" id="backupMsg"></div>
+        <button class="btn moss" id="backupDownloadBtn">⬇️ Download full backup (ZIP)</button>
+      </div>
+    </div>
   </div>
 </div>
 
