@@ -539,6 +539,10 @@ function thcShowOutputCard() {
   outputCard.classList.remove("hidden");
   document.getElementById("activePartnerSummary").textContent =
     `Using "${state.activePartner.name}" — top ${state.activePartner.topMm}mm, side ${state.activePartner.sideMm}mm, header ${state.activePartner.headerMm}mm, logo ${state.activePartner.logoMm}mm.`;
+  document.getElementById("quickTopSpace").value = state.activePartner.topMm;
+  document.getElementById("quickSideSpace").value = state.activePartner.sideMm;
+  document.getElementById("quickHeaderHeight").value = state.activePartner.headerMm;
+  document.getElementById("quickLogoSize").value = state.activePartner.logoMm;
   outputCard.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 function thcRefreshOutputCardIfVisible() {
@@ -564,6 +568,18 @@ previewBtn.addEventListener("click", async () => {
     settingsStatus.classList.remove("hidden");
     return;
   }
+
+  const qTop = parseFloat(document.getElementById("quickTopSpace").value);
+  const qSide = parseFloat(document.getElementById("quickSideSpace").value);
+  const qHeader = parseFloat(document.getElementById("quickHeaderHeight").value);
+  const qLogo = parseFloat(document.getElementById("quickLogoSize").value);
+  if (!isNaN(qTop)) state.activePartner.topMm = qTop;
+  if (!isNaN(qSide)) state.activePartner.sideMm = qSide;
+  if (!isNaN(qHeader)) state.activePartner.headerMm = qHeader;
+  if (!isNaN(qLogo)) state.activePartner.logoMm = qLogo;
+  document.getElementById("activePartnerSummary").textContent =
+    `Using "${state.activePartner.name}" — top ${state.activePartner.topMm}mm, side ${state.activePartner.sideMm}mm, header ${state.activePartner.headerMm}mm, logo ${state.activePartner.logoMm}mm.`;
+
   const { topMm, sideMm, headerMm, logoMm, mode, ownLogoBytes, partnerLogoBytes } = state.activePartner;
   previewBtn.disabled = true;
   previewBtn.innerHTML = '<span class="spinner"></span>Rendering preview…';
@@ -590,7 +606,7 @@ previewBtn.addEventListener("click", async () => {
 
 adjustBtn.addEventListener("click", () => {
   previewCard.classList.add("hidden");
-  outputCard.scrollIntoView({ behavior: "smooth", block: "start" });
+  thcShowOutputCard();
   thcSetPill(2, null);
 });
 
