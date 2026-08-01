@@ -105,6 +105,21 @@
       </div>
       <div id="empList"></div>
     </div>
+
+    <div class="panel" id="empAttendancePanel" style="display:none;">
+      <div class="panel-header-row">
+        <div class="panel-title" style="margin-bottom:0;">Attendance — <span id="empAttendanceName"></span></div>
+        <input id="empAttendanceMonth" type="month" />
+      </div>
+      <div class="msg" id="empAttendanceMsg"></div>
+      <div class="table-wrap">
+        <table class="cust-table" id="empAttendanceTable">
+          <thead><tr><th>Date</th><th>Check In</th><th>Check Out</th><th>Duration</th></tr></thead>
+          <tbody id="empAttendanceTableBody"></tbody>
+          <tfoot id="empAttendanceFooter"></tfoot>
+        </table>
+      </div>
+    </div>
   </div>
 
   <!-- Services -->
