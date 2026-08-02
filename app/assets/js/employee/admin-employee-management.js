@@ -42,15 +42,31 @@
 
   // ---------- Attendance (per-employee, filtered by month) ----------
   let empAttendanceEmployeeId = null;
+  const EMP_MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  function empPopulateAttendanceDropdowns(){
+    const monthSel = document.getElementById('empAttendanceMonthSelect');
+    const yearSel = document.getElementById('empAttendanceYearSelect');
+    if (monthSel.dataset.populated === 'true') return;
+
+    monthSel.innerHTML = EMP_MONTH_NAMES.map((name, i) => `<option value="${i + 1}">${name}</option>`).join('');
+
+    const currentYear = new Date().getFullYear();
+    const years = [];
+    for (let y = currentYear + 1; y >= currentYear - 4; y--) years.push(y);
+    yearSel.innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join('');
+
+    monthSel.dataset.populated = 'true';
+  }
 
   function empShowAttendance(employeeId, employeeName){
     empAttendanceEmployeeId = employeeId;
     document.getElementById('empAttendanceName').textContent = employeeName;
     document.getElementById('empAttendancePanel').style.display = 'block';
-    if (!document.getElementById('empAttendanceMonth').value){
-      const now = new Date();
-      document.getElementById('empAttendanceMonth').value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-    }
+    empPopulateAttendanceDropdowns();
+    const now = new Date();
+    document.getElementById('empAttendanceMonthSelect').value = now.getMonth() + 1;
+    document.getElementById('empAttendanceYearSelect').value = now.getFullYear();
     document.getElementById('empAttendancePanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
     empLoadAttendance();
   }
@@ -64,16 +80,16 @@
 
   async function empLoadAttendance(){
     if (!empAttendanceEmployeeId) return;
-    const monthVal = document.getElementById('empAttendanceMonth').value;
+    const m = parseInt(document.getElementById('empAttendanceMonthSelect').value, 10);
+    const y = parseInt(document.getElementById('empAttendanceYearSelect').value, 10);
     const tbody = document.getElementById('empAttendanceTableBody');
     const footer = document.getElementById('empAttendanceFooter');
-    if (!monthVal){
+    if (!m || !y){
       tbody.innerHTML = '<tr><td colspan="4" class="empty">Pick a month.</td></tr>';
       footer.innerHTML = '';
       return;
     }
 
-    const [y, m] = monthVal.split('-').map(Number);
     const rangeStart = new Date(y, m - 1, 1).toISOString();
     const rangeEnd = new Date(y, m, 1).toISOString();
 
@@ -108,7 +124,8 @@
     footer.innerHTML = `<tr><td colspan="3" style="text-align:right; font-weight:700;">Total for month</td><td style="font-weight:700;">${empFormatDuration(totalSeconds)}</td></tr>`;
   }
 
-  document.getElementById('empAttendanceMonth').addEventListener('change', empLoadAttendance);
+  document.getElementById('empAttendanceMonthSelect').addEventListener('change', empLoadAttendance);
+  document.getElementById('empAttendanceYearSelect').addEventListener('change', empLoadAttendance);
 
   document.getElementById('createEmpBtn').addEventListener('click', async () => {
     const name = document.getElementById('empName').value.trim();
