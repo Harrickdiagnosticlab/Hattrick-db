@@ -69,16 +69,43 @@
   }
 
   /* ---------- Profit & Loss grid (Excel-style: months as columns) ---------- */
-  .pnl-grid{ min-width:600px; }
+  .pnl-grid{
+    min-width:560px; border-collapse:separate; border-spacing:0;
+    font-variant-numeric:tabular-nums;
+  }
+  .pnl-grid th, .pnl-grid td{
+    padding:11px 16px; font-size:13.5px; white-space:nowrap;
+  }
   .pnl-grid thead th{
     background:var(--amber-soft); color:var(--ink); font-weight:700;
+    font-family:var(--font-display); font-size:13px; letter-spacing:.01em;
+    border-bottom:2px solid #e8c79e; position:sticky; top:0; z-index:2;
   }
-  .pnl-grid thead th:first-child{ text-align:left; }
+  .pnl-grid thead th:first-child{
+    text-align:left; position:sticky; left:0; z-index:3; min-width:200px;
+  }
+  .pnl-grid tbody td:first-child, .pnl-grid tbody th:first-child{
+    position:sticky; left:0; background:#fff; z-index:1; min-width:200px;
+    box-shadow:2px 0 4px -2px rgba(0,0,0,.06);
+  }
   .pnl-grid tbody td:not(:first-child){ text-align:right; }
+  .pnl-grid tbody tr{ border-bottom:1px solid var(--rule); }
+  .pnl-grid tbody tr:last-child{ border-bottom:none; }
+
   .pnl-row-highlight td{ background:#eaf3e9; font-weight:600; }
-  .pnl-row-sub td:first-child{ padding-left:26px; color:var(--ink-dim); }
-  .pnl-row-section td{ font-weight:700; color:var(--ink); padding-top:14px; }
+  .pnl-row-highlight td:first-child{ background:#eaf3e9; }
+  .pnl-row-sub td{ color:var(--ink-dim); font-size:13px; }
+  .pnl-row-sub td:first-child{ padding-left:34px; background:#fff; }
+  .pnl-row-section td{
+    font-weight:700; color:var(--ink); padding-top:18px; font-family:var(--font-display); font-size:14px;
+  }
+  .pnl-row-section td:first-child{ background:#fff; }
   .pnl-row-danger td{ background:#fbe4e0; }
+  .pnl-row-danger td:first-child{ background:#fbe4e0; }
   .pnl-row-net td{ background:var(--amber-soft); }
+  .pnl-row-net td:first-child{ background:var(--amber-soft); }
+  .pnl-row-outstanding td{ font-weight:600; padding-top:16px; }
   .pnl-row-bold td{ font-weight:700; }
+  .pnl-zero{ color:var(--ink-dim); opacity:.5; }
+  .pnl-current-month{ background:#fdf6ec; box-shadow:inset 0 -2px 0 var(--amber); }
   #pnlTable.pnl-grid{ table-layout:auto; }
