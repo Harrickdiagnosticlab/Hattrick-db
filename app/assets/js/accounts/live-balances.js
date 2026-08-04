@@ -1,4 +1,4 @@
-  // ---------- Live balances (all-time, straight from the ledger) ----------
+// ---------- Live balances (all-time, straight from the ledger) ----------
   async function acctLoadBalances(){
     const { data, error } = await sb.from('ledger').select('customerPaymentMode, customerPaidAmount');
 
@@ -30,6 +30,15 @@
     cash += ledgerOpeningCashVal;
     digital += ledgerOpeningBankVal;
 
+    // Deposits/withdrawals move money between the two buckets — never
+    // counted as income or expense, so Sales/Expenses/P&L stay untouched.
+    const { data: transferRows } = await sb.from('cash_transfers').select('direction, amount');
+    (transferRows || []).forEach(t => {
+      const amt = parseFloat(t.amount) || 0;
+      if (t.direction === 'deposit'){ cash -= amt; digital += amt; }
+      else if (t.direction === 'withdraw'){ digital -= amt; cash += amt; }
+    });
+
     acctCashBalanceVal = cash;
     acctDigitalBalanceVal = digital;
 
@@ -45,4 +54,3 @@
     ledgerOpeningCashVal = (data && data[0]) ? parseFloat(data[0].opening_cash) || 0 : 0;
     ledgerOpeningBankVal = (data && data[0]) ? parseFloat(data[0].opening_bank) || 0 : 0;
   }
-
