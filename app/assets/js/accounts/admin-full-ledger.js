@@ -7,13 +7,17 @@
     // credit/debit/holding, replicating the original ledger report's logic exactly
     const isExpense = r.type === 'EXPENSE';
     const isAmountIn = r.type === 'AMOUNT_IN' || r.type === 'PAYMENT';
+    const isTransfer = r.type === 'TRANSFER';
     const paid = parseFloat(r.paid) || 0;
     const b2bPaid = parseFloat(r.b2bPaid) || 0;
     const clearedAmt = parseFloat(r.clearedAmt) || 0;
     const expenseAmt = isExpense ? paid : 0;
 
-    const credit = isExpense ? 0 : paid;
-    const debit = isAmountIn ? 0 : (isExpense ? expenseAmt : b2bPaid);
+    // TRANSFER rows come in linked pairs (one "out" leg, one "in" leg) with
+    // their own explicit credit/debit already set — a transfer never touches
+    // Sales/Expenses, it only moves money between the Cash and Bank buckets.
+    const credit = isTransfer ? (r._transferCredit || 0) : (isExpense ? 0 : paid);
+    const debit = isTransfer ? (r._transferDebit || 0) : (isAmountIn ? 0 : (isExpense ? expenseAmt : b2bPaid));
     const holding = credit - debit;
     // Pending on an invoice also accounts for any amount already cleared
     // separately against it (shown as its own PAYMENT row), so the two
@@ -27,6 +31,7 @@
     await acctLoadClearances();
     const { data: invRows } = await sb.from('ledger').select('*').order('timestamp', { ascending: false }).limit(1000);
     const { data: expRows } = await sb.from('expenses').select('*').order('timestamp', { ascending: false }).limit(1000);
+    const { data: transferRows } = await sb.from('cash_transfers').select('*').order('timestamp', { ascending: false }).limit(1000);
     const { data: settingsRows } = await sb.from('ledger_settings').select('*').limit(1);
 
     ledgerOpeningCashVal = (settingsRows && settingsRows[0]) ? parseFloat(settingsRows[0].opening_cash) || 0 : 0;
@@ -54,7 +59,27 @@
       b2bName: '', b2bPaid: 0, timestamp: c.timestamp, _clearanceId: c.id, clearedAmt: 0
     }));
 
-    ledgerAllRows = [...invEntries, ...expEntries, ...paymentEntries].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    const transferEntries = [];
+    (transferRows || []).forEach(t => {
+      const amt = parseFloat(t.amount) || 0;
+      const fromMode = t.direction === 'deposit' ? 'Cash' : 'Bank';
+      const toMode = t.direction === 'deposit' ? 'Bank' : 'Cash';
+      const label = (t.direction === 'deposit' ? 'Deposit (Cash → Bank)' : 'Withdraw (Bank → Cash)') + (t.note ? ' — ' + t.note : '');
+      transferEntries.push({
+        type: 'TRANSFER', date: t.date, invoiceNumber: 'XFER-' + t.id.slice(0, 8),
+        customer: label, patientId: '', mode: fromMode,
+        total: 0, discount: 0, paid: amt, _transferCredit: 0, _transferDebit: amt,
+        b2bName: '', b2bPaid: 0, timestamp: t.timestamp, _transferId: t.id, clearedAmt: 0
+      });
+      transferEntries.push({
+        type: 'TRANSFER', date: t.date, invoiceNumber: 'XFER-' + t.id.slice(0, 8),
+        customer: label, patientId: '', mode: toMode,
+        total: 0, discount: 0, paid: amt, _transferCredit: amt, _transferDebit: 0,
+        b2bName: '', b2bPaid: 0, timestamp: t.timestamp, _transferId: t.id, clearedAmt: 0
+      });
+    });
+
+    ledgerAllRows = [...invEntries, ...expEntries, ...paymentEntries, ...transferEntries].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
     ledgerPopulateMonthFilter();
     ledgerApplyFilters();
   }
@@ -106,7 +131,7 @@
       else { bankCredit += m.credit; bankDebit += m.debit; }
       if (r.type === 'INVOICE') income += (parseFloat(r.paid) || 0) - (parseFloat(r.b2bPaid) || 0);
       if (r.type === 'PAYMENT') income += parseFloat(r.paid) || 0;
-      if (r.type !== 'AMOUNT_IN') expenseDebit += m.debit;
+      if (r.type !== 'AMOUNT_IN' && r.type !== 'TRANSFER') expenseDebit += m.debit;
     });
     const cashClosing = ledgerOpeningCashVal + (cashCredit - cashDebit);
     const bankClosing = ledgerOpeningBankVal + (bankCredit - bankDebit);
@@ -147,12 +172,12 @@
       if (r.mode === 'Cash'){ sums.cashCredit += m.credit; sums.cashDebit += m.debit; }
       else { sums.bankCredit += m.credit; sums.bankDebit += m.debit; }
 
-      const typeColor = r.type === 'EXPENSE' ? 'var(--red)' : (r.type === 'AMOUNT_IN' ? 'var(--amber)' : (r.type === 'PAYMENT' ? '#5c8ba8' : 'var(--moss)'));
+      const typeColor = r.type === 'EXPENSE' ? 'var(--red)' : (r.type === 'AMOUNT_IN' ? 'var(--amber)' : (r.type === 'PAYMENT' ? '#5c8ba8' : (r.type === 'TRANSFER' ? '#8a6fb0' : 'var(--moss)')));
       const canCollect = r.type === 'INVOICE' && m.pending > 0.009;
       const rowId = 'ledger-row-' + idx;
 
       const mainRow = `
-      <tr data-invoice="${escapeHtml(r.invoiceNumber)}" data-pending="${m.pending}" data-exp-id="${r._expenseId || ''}" data-clearance-id="${r._clearanceId || ''}" data-ledger-id="${r._ledgerId || ''}" data-row-type="${r.type}">
+      <tr data-invoice="${escapeHtml(r.invoiceNumber)}" data-pending="${m.pending}" data-exp-id="${r._expenseId || ''}" data-clearance-id="${r._clearanceId || ''}" data-ledger-id="${r._ledgerId || ''}" data-transfer-id="${r._transferId || ''}" data-row-type="${r.type}">
         <td class="cust-meta" style="color:${typeColor};">${r.type}</td>
         <td class="cust-meta">${formatDMY(r.date)}</td>
         <td class="cust-meta">${escapeHtml(r.invoiceNumber)}</td>
@@ -240,6 +265,7 @@
         if (!entry) return;
         if (entry.type === 'EXPENSE') openExpenseEditModal(entry);
         else if (entry.type === 'PAYMENT') openPaymentEditModal(entry);
+        else if (entry.type === 'TRANSFER') alert('Deposit/Withdraw entries can\u2019t be edited — remove this one and add a new one instead.');
         else openInvoiceEditModal(entry);
       });
     });
@@ -254,6 +280,8 @@
             await sb.from('expenses').delete().eq('id', tr.dataset.expId);
           } else if (rowType === 'PAYMENT'){
             await sb.from('payment_clearances').delete().eq('id', tr.dataset.clearanceId);
+          } else if (rowType === 'TRANSFER'){
+            await sb.from('cash_transfers').delete().eq('id', tr.dataset.transferId);
           } else {
             await sb.from('ledger').delete().eq('id', tr.dataset.ledgerId);
           }
