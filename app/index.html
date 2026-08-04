@@ -309,6 +309,7 @@
           <div class="field" style="display:flex; align-items:flex-end;">
             <button class="btn moss" id="ledgerAddAmountBtn" type="button">+ Add Amount</button>
             <button class="btn red" id="ledgerAddExpenseBtn" type="button">+ Add Expense</button>
+            <button class="btn ghost" id="ledgerTransferBtn" type="button">⇄ Deposit / Withdraw</button>
           </div>
         </div>
         <div class="form-row">
@@ -984,6 +985,27 @@
   </div>
 </div>
 
+<!-- Deposit / Withdraw modal -->
+<div class="modal-overlay" id="transferModal">
+  <div class="modal-card">
+    <div class="modal-title">Deposit / Withdraw</div>
+    <div class="msg" id="transferMsg"></div>
+    <div class="field"><label>Direction</label>
+      <div class="mode-pills" id="transferDirectionPills">
+        <button type="button" class="mode-pill selected" data-mode="deposit">Cash → Bank (Deposit)</button>
+        <button type="button" class="mode-pill" data-mode="withdraw">Bank → Cash (Withdraw)</button>
+      </div>
+    </div>
+    <div class="field"><label>Amount (₹)</label><input id="transferValue" type="number" placeholder="0.00" /></div>
+    <div class="field"><label>Note</label><input id="transferNote" type="text" placeholder="e.g. Weekly cash deposit" /></div>
+    <p class="hint">This moves money between your Cash and Digital/Bank balances — it doesn't affect Sales, Expenses, or Profit &amp; Loss.</p>
+    <div class="modal-actions">
+      <button class="btn ghost" id="transferCancelBtn" type="button">Cancel</button>
+      <button class="btn moss" id="transferSaveBtn" type="button">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- Add Expense modal -->
 <div class="modal-overlay" id="addExpenseModal">
   <div class="modal-card">
@@ -1108,6 +1130,7 @@
 <script src="assets/js/ui/modal-helpers.js"></script>
 <script src="assets/js/ui/confirm-modal.js"></script>
 <script src="assets/js/accounts/add-amount.js"></script>
+<script src="assets/js/accounts/cash-transfer.js"></script>
 <script src="assets/js/accounts/add-expense.js"></script>
 <script src="assets/js/accounts/ledger-edit.js"></script>
 <script src="assets/js/accounts/csv-export.js"></script>
