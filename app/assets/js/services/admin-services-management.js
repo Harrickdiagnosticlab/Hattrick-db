@@ -1,4 +1,4 @@
-  // ---------- Admin: services / tests management ----------
+// ---------- Admin: services / tests management ----------
   const svcMsg = document.getElementById('svcMsg');
   const svcTableBody = document.getElementById('svcTableBody');
 
@@ -53,6 +53,15 @@
 
   let svcAllRows = [];
 
+  // Runs loadServices() (which rebuilds the whole table) but then scrolls
+  // back to the exact row the user was just working with, instead of
+  // leaving them wherever the page happened to reflow to.
+  async function svcReloadKeepingRowInView(serviceId){
+    await loadServices();
+    const row = svcTableBody.querySelector(`tr[data-service-id="${serviceId}"]`);
+    if (row) row.scrollIntoView({ behavior: 'auto', block: 'center' });
+  }
+
   async function loadServices(){
     const showArchived = document.getElementById('svcShowArchived').checked;
     const categoryFilter = document.getElementById('svcCategoryFilter').value;
@@ -84,7 +93,7 @@
       return;
     }
     svcTableBody.innerHTML = data.map(s => `
-      <tr>
+      <tr data-service-id="${s.id}">
         <td>${escapeHtml(s.name)} ${s.active === false ? '<span class="cust-meta" style="color:var(--red);">(archived)</span>' : ''}</td>
         <td class="cust-meta">${escapeHtml((Array.isArray(s.categories) && s.categories.length > 0) ? s.categories.join(', ') : 'Uncategorized')}</td>
         <td class="cust-meta">₹${escapeHtml(s.price)}</td>
@@ -125,7 +134,7 @@
       btn.addEventListener('click', async () => {
         const isActive = btn.dataset.active === 'true';
         await sb.from('services').update({ active: !isActive }).eq('id', btn.dataset.id);
-        await loadServices();
+        await svcReloadKeepingRowInView(btn.dataset.id);
         await loadAdminStats();
       });
     });
@@ -166,7 +175,7 @@
             .update({ name: newName, price: newPrice, categories: newCategories })
             .eq('id', btn.dataset.id);
           if (error){ showMsg(svcMsg, error.message, 'err'); return; }
-          await loadServices();
+          await svcReloadKeepingRowInView(btn.dataset.id);
         });
       });
     });
@@ -256,4 +265,3 @@
     svcImportFile.value = '';
     svcImportBtn.disabled = false;
   });
-
