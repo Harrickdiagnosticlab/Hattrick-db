@@ -82,20 +82,30 @@
 
   function svcApplyFilter(){
     const term = document.getElementById('svcSearchFilter').value.toLowerCase().trim();
-    const rows = term ? svcAllRows.filter(s => (s.name || '').toLowerCase().includes(term)) : svcAllRows;
+    const uncategorizedOnly = document.getElementById('svcUncategorizedOnly').checked;
+    let rows = term ? svcAllRows.filter(s => (s.name || '').toLowerCase().includes(term)) : svcAllRows;
+    if (uncategorizedOnly){
+      rows = rows.filter(s => !Array.isArray(s.categories) || s.categories.length === 0 || (s.categories.length === 1 && s.categories[0] === 'Uncategorized'));
+    }
     svcRenderRows(rows);
   }
   document.getElementById('svcSearchFilter').addEventListener('input', svcApplyFilter);
+  document.getElementById('svcUncategorizedOnly').addEventListener('change', svcApplyFilter);
 
   function svcRenderRows(data){
     if (!data || data.length === 0){
       svcTableBody.innerHTML = '<tr><td colspan="5" class="empty">No services found.</td></tr>';
       return;
     }
-    svcTableBody.innerHTML = data.map(s => `
+    svcTableBody.innerHTML = data.map(s => {
+      const hasCategories = Array.isArray(s.categories) && s.categories.length > 0 && !(s.categories.length === 1 && s.categories[0] === 'Uncategorized');
+      const categoryCell = hasCategories
+        ? escapeHtml(s.categories.join(', '))
+        : '<span class="svc-uncategorized-badge" title="This test has no category set">⚠ Uncategorized</span>';
+      return `
       <tr data-service-id="${s.id}">
         <td>${escapeHtml(s.name)} ${s.active === false ? '<span class="cust-meta" style="color:var(--red);">(archived)</span>' : ''}</td>
-        <td class="cust-meta">${escapeHtml((Array.isArray(s.categories) && s.categories.length > 0) ? s.categories.join(', ') : 'Uncategorized')}</td>
+        <td class="cust-meta">${categoryCell}</td>
         <td class="cust-meta">₹${escapeHtml(s.price)}</td>
         <td style="text-align:center;">
           <button class="svc-visibility-toggle" data-id="${s.id}" data-visible="${s.visible_external !== false}" title="${s.visible_external !== false ? 'Visible on linked website — click to hide' : 'Hidden from linked website — click to show'}" style="background:none; border:none; cursor:pointer; font-size:18px; color:${s.visible_external !== false ? 'var(--moss)' : 'var(--red)'}; text-decoration:${s.visible_external !== false ? 'none' : 'line-through'};">👁</button>
@@ -104,8 +114,8 @@
           <button class="emp-del svc-edit" data-id="${s.id}" data-name="${escapeHtml(s.name)}" data-price="${s.price}" data-categories='${escapeHtml(JSON.stringify(Array.isArray(s.categories) ? s.categories : []))}' style="color:var(--moss); margin-right:14px;">Edit</button>
           <button class="emp-del svc-del" data-id="${s.id}" data-active="${s.active}" style="color:${s.active === false ? 'var(--moss)' : 'var(--red)'};">${s.active === false ? 'Restore' : 'Archive'}</button>
         </td>
-      </tr>
-    `).join('');
+      </tr>`;
+    }).join('');
 
     svcTableBody.querySelectorAll('.svc-visibility-toggle').forEach(btn => {
       btn.addEventListener('click', async () => {
