@@ -11,7 +11,7 @@
     'Genetic and DNA Blood Tests','Blood Culture and Sensitivity','Bone Profile / Metabolic Bone Markers',
     'Anemia Profiles (Iron & Ferritin tracking)','STD / STI Screening','Therapeutic Drug Monitoring (TDM)',
     'Toxicology Screening','Prenatal / Screening Tests','Arthritis Profiles','Immunoglobulins Test',
-    'Fluid Analysis','Flow Cytometry','Sepsis Markers','Neurological Biomarkers','Uncategorized'
+    'Fluid Analysis','Flow Cytometry','Sepsis Markers','Neurological Biomarkers'
   ];
 
   let svcKnownCategories = [...SVC_PRESET_CATEGORIES];
@@ -32,7 +32,8 @@
   }
 
   function svcRefreshKnownCategories(extraCategories){
-    svcKnownCategories = Array.from(new Set([...SVC_PRESET_CATEGORIES, ...(extraCategories || [])])).sort();
+    const cleanExtra = (extraCategories || []).filter(c => c !== 'Uncategorized');
+    svcKnownCategories = Array.from(new Set([...SVC_PRESET_CATEGORIES, ...cleanExtra])).sort();
 
     svcRenderCategoryPicker('svcCategoryPicker', svcSelectedCategories);
 
@@ -85,7 +86,10 @@
     const uncategorizedOnly = document.getElementById('svcUncategorizedOnly').checked;
     let rows = term ? svcAllRows.filter(s => (s.name || '').toLowerCase().includes(term)) : svcAllRows;
     if (uncategorizedOnly){
-      rows = rows.filter(s => !Array.isArray(s.categories) || s.categories.length === 0 || (s.categories.length === 1 && s.categories[0] === 'Uncategorized'));
+      rows = rows.filter(s => {
+        const real = (Array.isArray(s.categories) ? s.categories : []).filter(c => c !== 'Uncategorized');
+        return real.length === 0;
+      });
     }
     svcRenderRows(rows);
   }
@@ -98,9 +102,10 @@
       return;
     }
     svcTableBody.innerHTML = data.map(s => {
-      const hasCategories = Array.isArray(s.categories) && s.categories.length > 0 && !(s.categories.length === 1 && s.categories[0] === 'Uncategorized');
+      const realCategories = (Array.isArray(s.categories) ? s.categories : []).filter(c => c !== 'Uncategorized');
+      const hasCategories = realCategories.length > 0;
       const categoryCell = hasCategories
-        ? escapeHtml(s.categories.join(', '))
+        ? escapeHtml(realCategories.join(', '))
         : '<span class="svc-uncategorized-badge" title="This test has no category set">⚠ Uncategorized</span>';
       return `
       <tr data-service-id="${s.id}">
@@ -176,7 +181,8 @@
         tr.querySelector('.svc-edit-save').addEventListener('click', async () => {
           const newName = tr.querySelector('.svc-edit-name').value.trim().toUpperCase();
           const newPrice = parseFloat(tr.querySelector('.svc-edit-price').value);
-          const newCategories = editSelectedCategories.size > 0 ? Array.from(editSelectedCategories) : ['Uncategorized'];
+          const realCategories = Array.from(editSelectedCategories).filter(c => c !== 'Uncategorized');
+          const newCategories = realCategories.length > 0 ? realCategories : ['Uncategorized'];
           if (!newName || isNaN(newPrice)){
             showMsg(svcMsg, 'Enter a valid test name and price.', 'err');
             return;
